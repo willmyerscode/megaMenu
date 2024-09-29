@@ -79,9 +79,9 @@ class wmMegaMenu {
 
     this.activeMenu = this.menus[0];
     this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
-    // this.accessibility = this.handleAccessibility();
-    // this.accessibility.init();
-    // this.accessibility.addKeyboardOpenAndClosedNavigation();
+    this.accessibility = this.handleAccessibility();
+    this.accessibility.init();
+    this.accessibility.addKeyboardOpenAndClosedNavigation();
 
     this.runHooks("afterInit");
   }
@@ -91,7 +91,6 @@ class wmMegaMenu {
     this.addCloseTriggers();
     this.addMobileOpenTriggers();
     this.addMobileBackButtonClick();
-    this.addEditModeObserver();
     this.addResizeEventListener();
     this.addScrollEventListener();
     this.addBurgerClickEventListener();
