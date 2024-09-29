@@ -9,6 +9,8 @@ class wmMegaMenu {
     activeAnimation: "fade",
     activeAnimationDelay: 300,
     mobileBreakpoint: 767,
+    allowTriggerClickthrough: true,
+    setTriggerNoFollow: false,
     triggerIconDisplay: true,
     triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
       <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -179,6 +181,18 @@ class wmMegaMenu {
             e.stopPropagation();
           });
         } else {
+          // Prevent Clickthrough
+          if (!this.settings.allowTriggerClickthrough) {
+            el.addEventListener("click", e => {
+              e.preventDefault();
+              e.stopPropagation();
+            });
+          }
+          // Add nofollow
+          if (this.settings.setTriggerNoFollow) {
+            el.setAttribute("rel", "nofollow");
+          }
+
           el.setAttribute("href", menu.sourceUrl);
         }
       });
@@ -1011,13 +1025,18 @@ class wmMegaMenu {
 
     const isElementFocusable = el => {
       // Check if the element is visible and not disabled
-      return el.offsetWidth > 0 && el.offsetHeight > 0 && 
-             getComputedStyle(el).visibility !== 'hidden' && 
-             !el.disabled;
-    }
+      return (
+        el.offsetWidth > 0 &&
+        el.offsetHeight > 0 &&
+        getComputedStyle(el).visibility !== "hidden" &&
+        !el.disabled
+      );
+    };
 
     const trapFocus = menu => {
-      const focusableElements = Array.from(menu.focusableElements).filter(isElementFocusable);
+      const focusableElements = Array.from(menu.focusableElements).filter(
+        isElementFocusable
+      );
       const firstFocusableElement = focusableElements[0];
       const lastFocusableElement =
         focusableElements[focusableElements.length - 1];
@@ -1030,8 +1049,6 @@ class wmMegaMenu {
         const isTabPressed = e.key === "Tab" || e.keyCode === 9;
 
         if (!isTabPressed) return;
-
-        console.log(e.target)
 
         if (e.shiftKey) {
           if (document.activeElement === firstFocusableElement) {
