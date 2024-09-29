@@ -1,9 +1,10 @@
 class wmMegaMenu {
   static pluginTitle = "wmMegaMenu";
   static defaultSettings = {
-    layout: "inset", // header-adapt or folder
-    openAnimation: "fade", // or fade, slide, swing
+    layout: "full-width", // header-adapt or folder
+    openAnimation: "slide", // or fade, slide, swing
     openAnimationDelay: 300,
+    insetMenuWidthLimit: 0.04,
     closeAnimationDelay: 300, // New setting
     activeAnimation: "fade",
     activeAnimationDelay: 300,
@@ -65,17 +66,22 @@ class wmMegaMenu {
     await this.buildStructure();
     this.buildDesktopHTML();
     this.buildMobileHTML();
+    this.setSizing();
     this.bindEvents();
     this.isMobile =
       window.innerWidth <= this.settings.mobileBreakpoint ? true : false;
     this.placeMegaMenusByScreenSize();
     this.headerCurrentStyles = JSON.parse(this.header.dataset.currentStyles);
     if (window.Squarespace) {
-      await wm$.reloadSquarespaceLifecycle([this.menu, this.header]);
+      wm$?.handleAddingMissingColorTheme();
+      await wm$?.reloadSquarespaceLifecycle([this.menu, this.header]);
     }
 
     this.activeMenu = this.menus[0];
     this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
+    // this.accessibility = this.handleAccessibility();
+    // this.accessibility.init();
+    // this.accessibility.addKeyboardOpenAndClosedNavigation();
 
     this.runHooks("afterInit");
   }
@@ -152,16 +158,24 @@ class wmMegaMenu {
     wrapperDiv.className = "mega-menu-wrapper";
     this.menuWrapper = wrapperDiv;
 
+    const absoluteMenu = document.createElement("div");
+    absoluteMenu.className = "mega-menu-absolute";
+    this.absoluteMenu = absoluteMenu;
+
+    const pageOverlay = document.createElement("div");
+    pageOverlay.className = "mega-menu-page-overlay";
+    this.pageOverlay = pageOverlay;
+
     const arrow = document.createElement("div");
     arrow.className = "mega-menu-arrow";
     this.arrow = arrow;
 
     this.menus.forEach(menu => {
       menu.desktopTriggers.forEach(el => {
-        if (menu.sourceUrl === '/') {
+        if (menu.sourceUrl === "/") {
           el.setAttribute("href", menu.referenceUrl);
-          el.setAttribute("rel", 'nofollow');
-          el.addEventListener('click', e => {
+          el.setAttribute("rel", "nofollow");
+          el.addEventListener("click", e => {
             e.preventDefault();
             e.stopPropagation();
           });
@@ -172,20 +186,23 @@ class wmMegaMenu {
 
       const itemDiv = document.createElement("div");
       itemDiv.className = "mega-menu-item";
+
       itemDiv.dataset.referenceUrl = menu.referenceUrl;
       menu.contentFrag.querySelectorAll(".page-section").forEach(section => {
         itemDiv.appendChild(section);
       });
-      wrapperDiv.appendChild(itemDiv);
+
+      absoluteMenu.appendChild(itemDiv);
       menu.item = itemDiv;
     });
 
+    wrapperDiv.appendChild(absoluteMenu);
     megaMenuDiv.appendChild(wrapperDiv);
     megaMenuDiv.appendChild(arrow);
     container.appendChild(megaMenuDiv);
 
     this.header.appendChild(container);
-    this.setActiveSizing();
+    this.positionMenuWrapper();
   }
   buildMobileHTML() {
     this.menus.forEach(menu => {
@@ -213,6 +230,7 @@ class wmMegaMenu {
       const mobileLink = document.createElement("a");
       mobileLink.setAttribute("data-folder-id", url);
       mobileLink.href = sourceUrl;
+      // mobileLink.href = 'javascript:void(0)';
 
       // Create the content container
       const contentDiv = document.createElement("div");
@@ -236,6 +254,26 @@ class wmMegaMenu {
 
       // Append the content div to the main anchor
       mobileLink.appendChild(contentDiv);
+      mobileLink.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rootFolder = mobileLink.closest('[data-folder="root"]');
+        const folderToOpen = document.querySelector(
+          `.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`
+        );
+
+        rootFolder.classList.add("header-menu-nav-folder--open");
+        folderToOpen.classList.add("header-menu-nav-folder--active");
+
+        console.log(mobileLink.dataset.folderId);
+        console.log(mobileLink.closest('[data-folder="root"]'));
+        console.log(
+          document.querySelector(
+            `.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`
+          )
+        );
+      });
 
       return mobileLink;
     }
@@ -261,6 +299,21 @@ class wmMegaMenu {
       backButton.setAttribute("data-action", "back");
       backButton.href = "/";
       backButton.tabIndex = -1;
+
+      backButton.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const rootFolder = document.querySelector('[data-folder="root"]');
+        const folderToClose = backButton.closest(".header-menu-nav-folder");
+
+        rootFolder.classList.remove("header-menu-nav-folder--open");
+        folderToClose.classList.remove("header-menu-nav-folder--active");
+
+        // console.log(mobileLink.dataset.folderId);
+        // console.log(mobileLink.closest('[data-folder="root"]'));
+        // console.log(document.querySelector(`.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`));
+      });
 
       // Create and append the chevron span
       const chevronSpan = document.createElement("span");
@@ -326,9 +379,10 @@ class wmMegaMenu {
   }
   addClickEventListener() {
     this.menu.addEventListener("click", e => {
-      this.setActiveSizing();
+      this.positionMenuWrapper();
       window.setTimeout(() => {
-        this.setActiveSizing();
+        this.setSizing();
+        this.positionMenuWrapper();
       }, 300);
     });
   }
@@ -387,15 +441,22 @@ class wmMegaMenu {
     this.runHooks("beforeOpenMenu", menu);
     if (this.isMenuOpen && this.activeMenu === menu) return;
     this.activeMenu = menu;
-    this.setSizing();
     this.updateHeaderBottom();
-    if (this.settings.layout !== "inset") {
+    this.setSizing();
+    if (this.settings.layout === "full-width") {
       this.matchColorTheme();
     }
-    if (!this.isMenuOpen && this.settings.layout === "inset")
-      this.setMenuPositioning(true);
+    if (!this.isMenuOpen && this.settings.layout === "inset") {
+      this.handleInsetMenuPositioning(true);
+    }
+    this.positionMenuWrapper();
 
-    this.setActiveSizing(true);
+    this.handleArrowAnimation("move");
+
+    // Update ARIA attributes
+    menu.desktopTriggers.forEach(trigger => {
+      trigger.setAttribute("aria-expanded", "true");
+    });
 
     // Start the opening animation using Web Animations API
     if (this.isMenuOpen) {
@@ -409,86 +470,43 @@ class wmMegaMenu {
       fill: "forwards",
     });
 
-    this.positionArrow()
-
     // Add classes for any CSS-based styling
     this.menu.classList.add("open");
+    this.addPageOverlay();
     document.body.classList.add("wm-mega-menu--open");
-
-    const arrowAnimation = this.arrow.animate(
-      [
-        {opacity: 0, transform: 'translateY(15px) rotate(45deg)'},
-        {opacity: 1, transform: 'translateY(0px) rotate(45deg)'},
-      ],
-      {
-        duration: 300,
-        easing: "ease-out",
-        fill: "forwards",
-        delay: 150,
-      }
-    );
 
     // Wait for the animation to finish before showing the active menu
     openAnimation.onfinish = () => {
-      this.isMenuOpen = true;
+      this.handleArrowAnimation("open");
       this.showActiveMenu();
+      this.isMenuOpen = true;
       this.runHooks("afterOpenMenu", menu);
     };
   }
   showActiveMenu() {
-    let before = true;
     this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
     if (this.settings.layout === "inset") {
-      this.setMenuPositioning();
+      this.handleInsetMenuPositioning();
     }
+
+    this.positionMenuWrapper();
     this.menu.dataset.activeMenu = this.activeMenu.referenceUrl;
-    this.setActiveSizing();
+
     this.menus.forEach(menu => {
       if (this.activeMenu === menu) {
-        this.positionArrow();
-        before = false;
+        this.handleArrowAnimation("move");
+
         menu.desktopTriggers.forEach(trigger =>
           trigger.parentElement.classList.add("mega-menu--active")
         );
         menu.item.classList.add("active");
-
-        const placement = menu.item.dataset.menuArrangement;
-        let startPos = "translateY(20px)";
-        let endPos = "translateY(0px)";
-        if (placement === "before") {
-          startPos = "translateX(20px)";
-          endPos = "translateX(0px)";
-        } else if (placement === "after") {
-          startPos = "translateX(-20px)";
-          endPos = "translateX(0px)";
-        }
-
-        // Animate the active menu item
-        const activeItemAnimation = menu.item.animate(
-          [
-            {opacity: 0, transform: startPos},
-            {opacity: 1, transform: endPos},
-          ],
-          {
-            duration: this.settings.activeAnimationDelay,
-            easing: "ease-out",
-            fill: "forwards",
-          }
-        );
-
-        activeItemAnimation.onfinish = () => {
-          menu.item.dataset.menuArrangement = "active";
-          //this.setActiveSizing();
-        };
       } else {
         menu.desktopTriggers.forEach(trigger =>
           trigger.parentElement.classList.remove("mega-menu--active")
         );
         menu.item.classList.remove("active");
-        menu.item.dataset.menuArrangement = before ? "before" : "after";
       }
     });
-    // this.positionArrow()
   }
   closeMenu() {
     this.runHooks("beforeCloseMenu");
@@ -505,11 +523,16 @@ class wmMegaMenu {
       }
     );
 
+    this.handleArrowAnimation("close");
+
     // Wait for the animation to finish before cleaning up
     closeAnimation.onfinish = () => {
       this.menu.classList.remove("open");
       document.body.classList.remove("wm-mega-menu--open");
+      document.body.classList.remove("wm-mega-menu-open-animation-complete");
+      this.removePageOverlay();
       this.isMenuOpen = false;
+      this.activeMenu.desktopTriggers[0].focus();
 
       if (this.settings.layout !== "inset") {
         this.revertColorTheme();
@@ -519,116 +542,151 @@ class wmMegaMenu {
         menu.desktopTriggers.forEach(trigger =>
           trigger.parentElement.classList.remove("mega-menu--active")
         );
-        menu.item.dataset.menuArrangement = "";
         menu.item.classList.remove("active");
       });
 
       this.runHooks("afterCloseMenu");
     };
+  }
+  getOpenAnimationKeyframes() {
+    const animations = {
+      fade: [
+        {opacity: 0, visibility: "hidden"},
+        {opacity: 1, visibility: "visible"},
+      ],
+      slide: distance => [
+        {
+          transform: `translateY(${distance})`,
+          opacity: 0,
+          visibility: "hidden",
+        },
+        {transform: "translateY(0)", opacity: 1, visibility: "visible"},
+      ],
+      swing: [
+        {
+          transform: "rotateX(-90deg) translateZ(0px)",
+          opacity: 0,
+          visibility: "hidden",
+        },
+        {
+          transform: "rotateX(0deg) translateZ(0px)",
+          opacity: 1,
+          visibility: "visible",
+        },
+      ],
+    };
 
-    // Immediately start fading out the active menu item
-    if (this.activeMenu) {
-      this.activeMenu.item.animate(
+    const animation =
+      animations[this.settings.openAnimation] || animations.fade;
+
+    if (typeof animation === "function") {
+      const distance =
+        this.settings.layout === "inset"
+          ? "-20px"
+          : `-${this.activeMenu.height}px`;
+      return animation(distance);
+    }
+
+    return animation;
+  }
+  getCloseAnimationKeyframes() {
+    const animations = {
+      fade: [
+        {opacity: 1, visibility: "visible"},
+        {opacity: 0, visibility: "hidden"},
+      ],
+      slide: distance => [
+        {transform: "translateY(0)", opacity: 1, visibility: "visible"},
+        {
+          transform: `translateY(${distance})`,
+          opacity: 0,
+          visibility: "hidden",
+        },
+      ],
+      swing: [
+        {
+          transform: "rotateX(0deg) translateZ(0px)",
+          opacity: 1,
+          visibility: "visible",
+        },
+        {
+          transform: "rotateX(-90deg) translateZ(0px)",
+          opacity: 0,
+          visibility: "hidden",
+        },
+      ],
+    };
+
+    const animation =
+      animations[this.settings.openAnimation] || animations.fade;
+
+    if (typeof animation === "function") {
+      const distance =
+        this.settings.layout === "inset"
+          ? "-20px"
+          : `-${this.activeMenu.height}px`;
+      return animation(distance);
+    }
+
+    return animation;
+  }
+  handleArrowAnimation(action = "open") {
+    const arrow = this.arrow;
+    const setArrowPosition = () => {
+      const arrow = this.arrow;
+      const menuWrapper = this.menuWrapper;
+      const menuItem = this.activeMenu;
+
+      const menuWrapperRect = menuWrapper.getBoundingClientRect();
+      const menuTriggerRect =
+        menuItem.desktopTriggers[0].getBoundingClientRect();
+
+      this.arrowX =
+        menuTriggerRect.left +
+        menuTriggerRect.width / 2 -
+        arrow.offsetWidth / 2;
+      this.arrowY = menuWrapperRect.top - arrow.offsetHeight / 2;
+    };
+
+    if (action === "open") {
+      setArrowPosition();
+      this.arrow.style.left = `${this.arrowX}px`;
+      this.arrow.style.top = `${this.arrowY}px`;
+      this.arrow.style.opacity = 0;
+      return arrow.animate(
         [
-          {opacity: 1, transform: "translateY(0)"},
-          {opacity: 0, transform: "translateY(20px)"},
+          {opacity: 0, transform: "translateY(200px) rotate(45deg)"},
+          {opacity: 1, transform: "translateY(0px) rotate(45deg)"},
         ],
         {
-          duration: this.settings.closeAnimationDelay * 0.5, // Faster than main close animation
-          easing: "ease-in",
+          duration: 300,
+          easing: "ease",
+          fill: "forwards",
+        }
+      );
+    } else if (action === "move") {
+      setArrowPosition();
+      return arrow.animate(
+        [{left: `${this.arrowX}px`, top: `${this.arrowY}px`}],
+        {
+          duration: 300,
+          easing: "ease",
+          fill: "forwards",
+        }
+      );
+    } else if (action === "close") {
+      return arrow.animate(
+        [
+          {opacity: 1, transform: "translateY(0px) rotate(45deg)"},
+          {opacity: 0, transform: "translateY(15px) rotate(45deg)"},
+        ],
+        {
+          duration: 300,
+          easing: "ease",
           fill: "forwards",
         }
       );
     }
-  }
-  getOpenAnimationKeyframes() {
-    switch (this.settings.openAnimation) {
-      case "fade":
-        return [
-          {opacity: 0, visibility: "hidden"},
-          {opacity: 1, visibility: "visible"},
-        ];
-      case "slide":
-        return [
-          {
-            transform: `translateY(-${this.activeMenu.height}px)`,
-            opacity: 0,
-            visibility: "hidden",
-          },
-          {transform: "translateY(0)", opacity: 1, visibility: "visible"},
-        ];
-      case "swing":
-        return [
-          {
-            transform: "rotateX(-90deg) translateZ(0px)",
-            opacity: 0,
-            visibility: "hidden",
-          },
-          {
-            transform: "rotateX(0deg) translateZ(0px)",
-            opacity: 1,
-            visibility: "visible",
-          },
-        ];
-      default:
-        return [
-          {opacity: 0, visibility: "hidden"},
-          {opacity: 1, visibility: "visible"},
-        ];
-    }
-  }
-  getCloseAnimationKeyframes() {
-    // Reverse the open animation keyframes
-    switch (this.settings.openAnimation) {
-      case "fade":
-        return [
-          {opacity: 1, visibility: "visible"},
-          {opacity: 0, visibility: "hidden"},
-        ];
-      case "slide":
-        return [
-          {transform: "translateY(0)", opacity: 1, visibility: "visible"},
-          {
-            transform: `translateY(-${this.activeMenu.height}px)`,
-            opacity: 0,
-            visibility: "hidden",
-          },
-        ];
-      case "swing":
-        return [
-          {
-            transform: "rotateX(0deg) translateZ(0px)",
-            opacity: 1,
-            visibility: "visible",
-          },
-          {
-            transform: "rotateX(-90deg) translateZ(0px)",
-            opacity: 0,
-            visibility: "hidden",
-          },
-        ];
-      default:
-        return [
-          {opacity: 1, visibility: "visible"},
-          {opacity: 0, visibility: "hidden"},
-        ];
-    }
-  }
-  positionArrow() {
-    const arrow = this.arrow;
-    const menu = this.menu;
-    const menuWrapper = this.menuWrapper;
-    const menuItem = this.activeMenu;
-
-    const menuWrapperRect = menuWrapper.getBoundingClientRect();
-    const menuTriggerRect = menuItem.desktopTriggers[0].getBoundingClientRect();
-
-    const arrowX =
-      menuTriggerRect.left + menuTriggerRect.width / 2 - arrow.offsetWidth / 2;
-    const arrowY = menuWrapperRect.top - arrow.offsetHeight / 2;
-
-    arrow.style.left = `${arrowX}px`;
-    arrow.style.top = `${arrowY}px`;
   }
   matchZIndex() {
     const headerStyle = window.getComputedStyle(this.header);
@@ -705,82 +763,164 @@ class wmMegaMenu {
       }
     });
   }
-  setActiveSizing() {
+  positionMenuWrapper() {
     this.menu.style.setProperty("--active-menu-height", "0px");
-    // Calculate the cumulative height of all direct children
-    const height = Array.from(this.activeMenu.item.children).reduce(
+
+    let left = 0;
+    for (const menu of this.menus) {
+      if (menu === this.activeMenu) {
+        break;
+      }
+      left += menu.width;
+    }
+
+    // const height = this.activeMenu.height;
+    let height = Array.from(this.activeMenu.item.children).reduce(
       (total, child) => {
         return total + child.offsetHeight;
       },
       0
     );
 
-    const left = this.activeMenu.item.offsetLeft;
-    this.menuWrapper.scrollLeft = left;
+    // Add the top and bottom border widths
+    const menuWrapperStyle = window.getComputedStyle(this.menuWrapper);
+    height +=
+      parseFloat(menuWrapperStyle.borderTopWidth) +
+      parseFloat(menuWrapperStyle.borderBottomWidth);
+
+    const width = this.activeMenu.width;
+
     this.menu.style.setProperty("--active-menu-height", height + "px");
+    this.menuWrapper.style.width = width + "px";
+
+    // Force a reflow to ensure DOM updates
     this.menuWrapper.offsetHeight;
 
-    const maxWidth = this.activeMenu.width;
-    this.menuWrapper.style.maxWidth = maxWidth + "px";
+    if (this.settings.layout !== "inset") {
+      this.menuWrapper.style.width = "100%";
+    }
+
+    // Use transform to move the content instead of scrollLeft
+    requestAnimationFrame(() => {
+      this.absoluteMenu.style.transform = `translateX(-${left}px)`;
+    });
   }
   setSizing() {
+    this.menus.forEach(menu => {
+      menu.item.style.width = ``;
+    });
+    this.menuWrapper.offsetHeight;
+
+    let absoluteWidth = 0;
     this.menus.forEach(menu => {
       const height = Array.from(menu.item.children).reduce((total, child) => {
         return total + child.offsetHeight;
       }, 0);
       menu.height = height;
-      menu.width = parseInt(
-        window.getComputedStyle(menu.item).getPropertyValue("max-width")
+
+      let width = parseInt(
+        window.getComputedStyle(menu.item).getPropertyValue("width")
       );
+      const insetWidthLimit =
+        window.innerWidth * (1 - 2 * this.settings.insetMenuWidthLimit);
+      if (width > insetWidthLimit) {
+        width = insetWidthLimit;
+      }
+      if (this.settings.layout !== "inset") {
+        width = window.innerWidth;
+      }
+      menu.width = width;
+      menu.item.style.width = `${width}px`;
+      absoluteWidth += width;
     });
+    this.absoluteMenu.style.width = `${absoluteWidth}px`;
   }
-  setMenuPositioning(shouldJump = false) {
+  handleInsetMenuPositioning(shouldJump = false) {
+    this.setSizing();
+    this.positionMenuWrapper();
     if (shouldJump) {
       this.menuWrapper.style.transition = "none";
     }
+
+    const inset = window.innerWidth * 0.04;
+    const windowRightEdge = window.innerWidth - inset;
+    const windowLeftEdge = inset;
+    const menuWrapperWidth = this.activeMenu.width;
+
+    const activeTrigger = this.activeMenu.desktopTriggers[0];
+    let translateX = 0;
 
     if (
       this.headerCurrentStyles?.layout === "navLeft" ||
       this.headerCurrentStyles?.layout === "brandingCenter"
     ) {
-      this.menu.style.justifyContent = "";
-      const activeTrigger = this.activeMenu.desktopTriggers[0];
       const triggerRect = activeTrigger.getBoundingClientRect();
-      const leftOffset = Math.max(
-        0,
-        triggerRect.left - window.innerWidth * 0.02 - 68
-      );
 
-      this.menuWrapper.style.marginLeft = `${leftOffset}px`;
-    }
-    if (this.headerCurrentStyles?.layout === "navRight") {
-      this.menu.style.justifyContent = "flex-end";
-      const activeTrigger = this.activeMenu.desktopTriggers[0];
+      translateX = triggerRect.left - 34;
+
+      // Check if it's overlapping the left edge
+      if (translateX < windowLeftEdge) {
+        const overlap = windowLeftEdge - translateX;
+        translateX = translateX + overlap;
+      }
+
+      // Check if it's overlapping the right edge
+      if (translateX + menuWrapperWidth > windowRightEdge) {
+        const overlap = translateX + menuWrapperWidth - windowRightEdge;
+        translateX = translateX - overlap - inset;
+        if (translateX < windowLeftEdge) {
+          translateX = windowLeftEdge;
+        }
+      }
+    } else if (this.headerCurrentStyles?.layout === "navRight") {
       const triggerRect = activeTrigger.getBoundingClientRect();
-      const rightOffset = Math.max(
-        0,
-        window.innerWidth - triggerRect.right - window.innerWidth * 0.02 - 68
-      );
 
-      this.menuWrapper.style.marginRight = `${rightOffset}px`;
-    }
-    if (
+      translateX = triggerRect.right + 34 - menuWrapperWidth;
+
+      // Check if it's overlapping the right edge
+      if (translateX + menuWrapperWidth > windowRightEdge) {
+        const overlap = translateX + menuWrapperWidth - windowRightEdge;
+        translateX = translateX - overlap;
+      }
+
+      // Check if it's overlapping the left edge
+      if (translateX < windowLeftEdge) {
+        const overlap = windowLeftEdge - translateX;
+        translateX = inset;
+      }
+    } else if (
       this.headerCurrentStyles?.layout === "navCenter" ||
       this.headerCurrentStyles?.layout === "brandingCenterNavCenter"
     ) {
-      this.menu.style.justifyContent = "";
-      const activeTrigger = this.activeMenu.desktopTriggers[0];
       const triggerRect = activeTrigger.getBoundingClientRect();
-      const menuWrapperRect = this.menuWrapper.getBoundingClientRect();
-
       const triggerCenter = triggerRect.left + triggerRect.width / 2;
-      const menuWrapperCenter = this.activeMenu.width / 2;
 
-      const offset =
-        triggerCenter - menuWrapperCenter - window.innerWidth * 0.04;
+      // Initially center the menu wrapper below the trigger
+      translateX = triggerCenter - menuWrapperWidth / 2;
 
-      this.menuWrapper.style.transform = `translateX(${offset}px)`;
+      // Check for right edge overlap
+      if (translateX + menuWrapperWidth > windowRightEdge) {
+        translateX = windowRightEdge - menuWrapperWidth - inset;
+      }
+
+      // Check for left edge overlap
+      if (translateX < windowLeftEdge) {
+        translateX = windowLeftEdge;
+      }
     }
+
+    // Get the current transform value
+    const computedStyle = window.getComputedStyle(this.menuWrapper);
+    const currentTransform = computedStyle.transform;
+    const currentTranslateX =
+      currentTransform !== "none"
+        ? parseFloat(currentTransform.split(",")[4])
+        : 0;
+
+    // Calculate the new transform
+    const newTransform = `translateX(${translateX}px)`;
+    this.menuWrapper.style.transform = newTransform;
+    this.setSizing();
 
     if (shouldJump) {
       this.menuWrapper.offsetHeight;
@@ -792,10 +932,12 @@ class wmMegaMenu {
   }
   addResizeEventListener() {
     const handleResize = () => {
+      this.closeMenu();
       this.isMobile =
         window.innerWidth <= this.settings.mobileBreakpoint ? true : false;
       if (!this.isMobile) this.closeMenu();
       this.placeMegaMenusByScreenSize();
+      this.setSizing();
     };
     window.addEventListener("resize", handleResize);
   }
@@ -806,9 +948,19 @@ class wmMegaMenu {
       });
     } else {
       this.menus.forEach(menu => {
-        this.menuWrapper.append(menu.item);
+        this.absoluteMenu.append(menu.item);
       });
     }
+  }
+  addPageOverlay() {
+    this.page.prepend(this.pageOverlay);
+  }
+  removePageOverlay() {
+    window.setTimeout(() => {
+      if (this.pageOverlay && !this.isMenuOpen) {
+        this.pageOverlay.remove();
+      }
+    }, this.settings.openAnimationDelay);
   }
   addScrollEventListener() {
     let ticking = false;
@@ -851,6 +1003,117 @@ class wmMegaMenu {
   set loadingState(value) {
     this._loadingState = value;
   }
+  handleAccessibility() {
+    const setFirstFocusableElement = menu => {};
+
+    const preventFocus = menu => {};
+
+    const allowFocus = menu => {};
+
+    const isElementFocusable = el => {
+      // Check if the element is visible and not disabled
+      return el.offsetWidth > 0 && el.offsetHeight > 0 && 
+             getComputedStyle(el).visibility !== 'hidden' && 
+             !el.disabled;
+    }
+
+    const trapFocus = menu => {
+      const focusableElements = Array.from(menu.focusableElements).filter(isElementFocusable);
+      const firstFocusableElement = focusableElements[0];
+      const lastFocusableElement =
+        focusableElements[focusableElements.length - 1];
+
+      focusableElements.forEach(el => {
+        el.removeAttribute("tabindex");
+      });
+
+      function handleKeyDown(e) {
+        const isTabPressed = e.key === "Tab" || e.keyCode === 9;
+
+        if (!isTabPressed) return;
+
+        console.log(e.target)
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            console.log("last");
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            console.log("first");
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+
+        //e.preventDefault();
+      }
+
+      menu.item.removeEventListener("keydown", handleKeyDown);
+      menu.item.addEventListener("keydown", handleKeyDown);
+    };
+
+    const addKeyboardOpenAndClosedNavigation = () => {
+      window.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+          this.closeMenu();
+          this.activeMenu.focusableElements.forEach(el => {
+            el.setAttribute("tabindex", "-1");
+          });
+        }
+      });
+
+      // Add keyboard support
+      this.menus.forEach(menu => {
+        menu.desktopTriggers.forEach(trigger => {
+          trigger.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+              if (this.isMenuOpen) {
+                this.closeMenu();
+                return;
+              }
+              e.preventDefault();
+              this.lastFocus = document.activeElement;
+              this.menu.setAttribute("aria-hidden", false);
+              this.openMenu(menu);
+              window.setTimeout(() => {
+                if (menu.firstFocusableElement) {
+                  console.log("focus on: ", menu.firstFocusableElement);
+                  trapFocus(menu);
+                  menu.firstFocusableElement.focus();
+                }
+              }, 300);
+            }
+          });
+        });
+      });
+    };
+
+    const init = () => {
+      this.menus.forEach(menu => {
+        const item = menu.item;
+        const focusableElements = item.querySelectorAll(
+          'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+        );
+        focusableElements.forEach(el => {
+          el.setAttribute("tabindex", "-1");
+        });
+        menu.focusableElements = focusableElements;
+        menu.firstFocusableElement = focusableElements[0];
+      });
+    };
+
+    return {
+      setFirstFocusableElement,
+      preventFocus,
+      allowFocus,
+      addKeyboardOpenAndClosedNavigation,
+      init,
+    };
+  }
+  // Add a new method for keyboard navigation within the menu
 }
 
 (() => {
