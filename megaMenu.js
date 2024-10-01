@@ -33,10 +33,10 @@ class wmMegaMenu {
     return window[wmMegaMenu.pluginTitle + "Settings"] || {};
   }
   constructor(els) {
-    if (els[0].dataset.loadingState) {
+    if (els[0].dataset.megaMenuLoadingState) {
       return;
     } else {
-      els.forEach(el => (el.dataset.loadingState = "loading"));
+      els.forEach(el => (el.dataset.megaMenuLoadingState = "loading"));
     }
     this.els = els;
     this.settings = wm$.deepMerge(
@@ -105,14 +105,31 @@ class wmMegaMenu {
     this.menu.style.setProperty("--header-bottom", this.headerBottom);
   }
   async buildStructure() {
-    const promises = Array.from(this.els).map(async el => {
+    const promises = Array.from(this.els).map(async (el, index) => {
       const url = new URL(el.href);
       const urlSlug = el.getAttribute("href");
-      const desktopTriggers = document.querySelectorAll(
-        `#header .header-inner [href="${urlSlug}"]`
-      );
-      const referenceUrl = urlSlug.split("=")[1] || "";
-      const sourceUrl = url.pathname;
+      let desktopTriggers = document.querySelectorAll(
+          `#header .header-inner [href="${urlSlug}"]`
+        ),
+        referenceUrl,
+        sourceUrl,
+        isDropdown = false,
+        keepDefaultMobileMenu = false;
+
+      // If Dropdown
+      if (
+        urlSlug.includes("-wm-mega-") &&
+        el.classList.contains("header-nav-folder-title")
+      ) {
+        referenceUrl = "/" + urlSlug.split("-wm-mega-")[1] || "";
+        sourceUrl = urlSlug.split("-wm-mega-")[0] || "";
+        keepDefaultMobileMenu = true;
+        isDropdown = true;
+      } else {
+        referenceUrl = urlSlug.split("=")[1] || "";
+        sourceUrl = url.pathname;
+      }
+
       if (!desktopTriggers.length || !referenceUrl) return null;
 
       const triggerText = desktopTriggers[0].innerText;
@@ -125,6 +142,7 @@ class wmMegaMenu {
         const colorTheme =
           contentFrag.querySelector(".page-section").dataset.sectionTheme;
         return {
+          order: index + 1,
           triggerText,
           desktopTriggers,
           mobileTriggerParent,
@@ -133,6 +151,8 @@ class wmMegaMenu {
           referenceUrl,
           contentFrag,
           colorTheme,
+          keepDefaultMobileMenu,
+          isDropdown,
         };
       } catch (error) {
         console.error(`Error fetching content for ${referenceUrl}:`, error);
@@ -188,11 +208,17 @@ class wmMegaMenu {
               e.stopPropagation();
             });
           }
+
+          if (menu.isDropdown && this.settings.allowTriggerClickthrough) {
+            el.addEventListener("click", e => {
+              window.location.href = menu.sourceUrl;
+            });
+          }
+
           // Add nofollow
           if (this.settings.setTriggerNoFollow) {
             el.setAttribute("rel", "nofollow");
           }
-
           el.setAttribute("href", menu.sourceUrl);
         }
       });
@@ -225,6 +251,11 @@ class wmMegaMenu {
         'a[data-action="back"]'
       );
 
+      menu.mobileTrigger = null;
+      menu.mobileContainer = null;
+
+      if (menu.keepDefaultMobileMenu) return;
+
       this.mobileFoldersList.append(menu.mobileFolder);
       menu.mobileTriggerParent.innerHTML = "";
       menu.mobileTriggerParent.append(newMobileTrigger);
@@ -243,7 +274,6 @@ class wmMegaMenu {
       const mobileLink = document.createElement("a");
       mobileLink.setAttribute("data-folder-id", url);
       mobileLink.href = sourceUrl;
-      // mobileLink.href = 'javascript:void(0)';
 
       // Create the content container
       const contentDiv = document.createElement("div");
@@ -278,14 +308,6 @@ class wmMegaMenu {
 
         rootFolder.classList.add("header-menu-nav-folder--open");
         folderToOpen.classList.add("header-menu-nav-folder--active");
-
-        console.log(mobileLink.dataset.folderId);
-        console.log(mobileLink.closest('[data-folder="root"]'));
-        console.log(
-          document.querySelector(
-            `.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`
-          )
-        );
       });
 
       return mobileLink;
@@ -322,10 +344,6 @@ class wmMegaMenu {
 
         rootFolder.classList.remove("header-menu-nav-folder--open");
         folderToClose.classList.remove("header-menu-nav-folder--active");
-
-        // console.log(mobileLink.dataset.folderId);
-        // console.log(mobileLink.closest('[data-folder="root"]'));
-        // console.log(document.querySelector(`.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`));
       });
 
       // Create and append the chevron span
@@ -407,6 +425,7 @@ class wmMegaMenu {
   }
   addMobileOpenTriggers() {
     this.menus.forEach(menu => {
+      if (menu.keepDefaultMobileMenu) return;
       const trigger = menu.mobileTrigger;
       const handleClick = () => {
         this.activeMenu = menu;
@@ -545,7 +564,6 @@ class wmMegaMenu {
       document.body.classList.remove("wm-mega-menu-open-animation-complete");
       this.removePageOverlay();
       this.isMenuOpen = false;
-      this.activeMenu.desktopTriggers[0].focus();
 
       if (this.settings.layout !== "inset") {
         this.revertColorTheme();
@@ -957,9 +975,13 @@ class wmMegaMenu {
   placeMegaMenusByScreenSize() {
     if (this.isMobile) {
       this.menus.forEach(menu => {
-        menu.mobileFolder.append(menu.item);
+        if (!menu.keepDefaultMobileMenu) {
+          menu.mobileFolder.append(menu.item);
+        }
       });
     } else {
+      this.menus.sort((a, b) => a.order - b.order);
+      this.absoluteMenu.innerHTML = "";
       this.menus.forEach(menu => {
         this.absoluteMenu.append(menu.item);
       });
@@ -1010,19 +1032,8 @@ class wmMegaMenu {
   set activeMenu(menu) {
     this._activeMenu = menu;
   }
-  get loadingState() {
-    return this._loadingState;
-  }
-  set loadingState(value) {
-    this._loadingState = value;
-  }
+
   handleAccessibility() {
-    const setFirstFocusableElement = menu => {};
-
-    const preventFocus = menu => {};
-
-    const allowFocus = menu => {};
-
     const isElementFocusable = el => {
       // Check if the element is visible and not disabled
       return (
@@ -1052,19 +1063,15 @@ class wmMegaMenu {
 
         if (e.shiftKey) {
           if (document.activeElement === firstFocusableElement) {
-            console.log("last");
             lastFocusableElement.focus();
             e.preventDefault();
           }
         } else {
           if (document.activeElement === lastFocusableElement) {
-            console.log("first");
             firstFocusableElement.focus();
             e.preventDefault();
           }
         }
-
-        //e.preventDefault();
       }
 
       menu.item.removeEventListener("keydown", handleKeyDown);
@@ -1075,6 +1082,7 @@ class wmMegaMenu {
       window.addEventListener("keydown", e => {
         if (e.key === "Escape") {
           this.closeMenu();
+          this.activeMenu.desktopTriggers[0].focus();
           this.activeMenu.focusableElements.forEach(el => {
             el.setAttribute("tabindex", "-1");
           });
@@ -1096,7 +1104,6 @@ class wmMegaMenu {
               this.openMenu(menu);
               window.setTimeout(() => {
                 if (menu.firstFocusableElement) {
-                  console.log("focus on: ", menu.firstFocusableElement);
                   trapFocus(menu);
                   menu.firstFocusableElement.focus();
                 }
@@ -1122,9 +1129,6 @@ class wmMegaMenu {
     };
 
     return {
-      setFirstFocusableElement,
-      preventFocus,
-      allowFocus,
       addKeyboardOpenAndClosedNavigation,
       init,
     };
@@ -1136,7 +1140,7 @@ class wmMegaMenu {
   function initMegaMenu() {
     // const els = document.querySelectorAll("[data-mega-menu]");
     const els = document.querySelectorAll(
-      ".header-menu-nav a[href*='#wm-mega']"
+      ".header-display-desktop .header-nav-list a[href*='#wm-mega'], .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-']"
     );
     if (!els.length) return;
     new wmMegaMenu(els);
