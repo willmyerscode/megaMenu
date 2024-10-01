@@ -234,6 +234,10 @@
   will-change: background-color;
 }
 
+.header-nav-folder-title.mega-menu-link + .header-nav-folder-content {
+  display: none;
+}
+
 /*Inset Layout*/
 .wm-mega-menu[data-layout="inset"] .mega-menu-item .page-section:first-child {
   padding-top: 0px !important;
