@@ -144,7 +144,7 @@
   padding-top: var(--header-bottom, 0px);
 }
 
-.header-nav-item--mega-menu a.mega-menu-link {
+.wm-mega-menu-plugin .header-nav-item--mega-menu a.mega-menu-link {
   display: inline-flex;
   align-items: center;
   gap: var(--trigger-icon-gap);
@@ -173,8 +173,9 @@
   }
 }
 
-.header-nav-item--mega-menu.mega-menu--active a.mega-menu-link svg {
-  transform: translate(0px, 2px);
+.header-nav-item--mega-menu.mega-menu--active a.mega-menu-link svg,
+.header-nav-item--mega-menu a.mega-menu-link:hover svg {
+  transform: var(--active-menu-icon-transform, translate(0px, 2px));
 }
 
 /*Overlay*/
