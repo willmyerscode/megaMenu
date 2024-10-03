@@ -224,8 +224,15 @@
 }
 
 /*Mobile Folders*/
+.mobile-mega-menu-folder.header-menu-nav-folder{
+  justify-content: start;
+}
+.mobile-mega-menu-folder .mega-menu-item{
+  text-align: initial;
+}
 .mobile-mega-menu-folder .header-menu-nav-folder-content {
   flex-grow: 0;
+
 }
 
 .site-wrapper
