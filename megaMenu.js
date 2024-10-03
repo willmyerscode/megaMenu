@@ -316,7 +316,7 @@ class wmMegaMenu {
       // Create the main container div
       const folder = document.createElement("div");
       folder.setAttribute("data-folder", folderPath);
-      folder.className = "header-menu-nav-folder mobile-mega-menu-folder";
+      folder.className = "header-menu-nav-folder mobile-mega-menu-folder site-wrapper";
 
       // Create the folder content div
       const folderContent = document.createElement("div");
