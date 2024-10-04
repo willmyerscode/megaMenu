@@ -191,6 +191,9 @@
   z-index: 99;
   animation: wmFadeOut 0.3s ease-out forwards;
 }
+.mega-menu-page-overlay + #sections {
+  z-index: 1;
+}
 .wm-mega-menu--open .mega-menu-page-overlay {
   animation: wmFadeIn 0.3s ease-out forwards;
 }
