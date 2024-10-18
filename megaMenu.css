@@ -285,3 +285,15 @@
 .wm-mega-menu[data-layout="inset"].open .mega-menu-arrow {
   display: block;
 }
+
+
+/*Buttons in Mobile Mega Menu Override*/
+.site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
+  color: var(--primaryButtonTextColor);
+}
+.site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:not(.btn) {
+  color: var(--secondaryButtonTextColor);
+}
+.site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
+  color: var(--tertiaryButtonTextColor);
+}
