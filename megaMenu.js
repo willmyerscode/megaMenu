@@ -850,7 +850,7 @@ class wmMegaMenu {
       menu.height = height;
 
       let width = parseInt(
-        window.getComputedStyle(menu.item).getPropertyValue("width")
+        window.getComputedStyle(menu.item).getPropertyValue("--mega-menu-max-width")
       );
       const insetWidthLimit =
         window.innerWidth * (1 - 2 * this.settings.insetMenuWidthLimit);
