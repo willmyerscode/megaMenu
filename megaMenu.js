@@ -5,7 +5,7 @@ class wmMegaMenu {
     openAnimation: "slide", // or fade, slide, swing
     openAnimationDelay: 300,
     insetMenuWidthLimit: 0.04,
-    closeAnimationDelay: 300, // New setting
+    closeAnimationDelay: 300,
     activeAnimation: "fade",
     activeAnimationDelay: 300,
     mobileBreakpoint: 767,
@@ -15,6 +15,7 @@ class wmMegaMenu {
     triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
       <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
     </svg>`,
+    openOnClick: false,
     hooks: {
       beforeInit: [],
       afterInit: [
@@ -47,6 +48,7 @@ class wmMegaMenu {
     this.menus = [];
     this.isMenuOpen = false;
     this.isMobileMenuOpen = false;
+    this.menuTriggerCurrentlyHovered = null;
 
     this.headerBottom = 0;
     this.header = document.querySelector("#header");
@@ -59,6 +61,13 @@ class wmMegaMenu {
     this.mobileFoldersList = this.header.querySelector(".header-menu-nav-list");
 
     this.defaultHeaderColorTheme = this.header.dataset.sectionTheme;
+
+    // Ensure allowTriggerClickthrough is disabled if openOnClick is enabled
+    if (this.settings.openOnClick) {
+      this.settings.allowTriggerClickthrough = false;
+    }
+
+    this.isAnimating = false;
 
     this.init();
   }
@@ -316,7 +325,8 @@ class wmMegaMenu {
       // Create the main container div
       const folder = document.createElement("div");
       folder.setAttribute("data-folder", folderPath);
-      folder.className = "header-menu-nav-folder mobile-mega-menu-folder site-wrapper";
+      folder.className =
+        "header-menu-nav-folder mobile-mega-menu-folder site-wrapper";
 
       // Create the folder content div
       const folderContent = document.createElement("div");
@@ -381,24 +391,26 @@ class wmMegaMenu {
     let closeTimeout;
 
     closeTriggers.forEach(el => {
-      el.addEventListener("mouseenter", () => {
-        // Clear any existing timeout
-        if (closeTimeout) {
-          clearTimeout(closeTimeout);
-        }
+      if (!this.settings.openOnClick) {
+        el.addEventListener("mouseenter", () => {
+          // Clear any existing timeout
+          if (closeTimeout) {
+            clearTimeout(closeTimeout);
+          }
 
-        // If there's an active menu and this element isn't its trigger
-        if (this.activeMenu && this.activeMenu.desktopTriggers) {
-          closeTimeout = setTimeout(() => {
-            const isActiveTrigger = Array.from(
-              this.activeMenu.desktopTriggers
-            ).some(trigger => trigger === el);
-            if (!isActiveTrigger) {
-              this.closeMenu();
-            }
-          }, 150);
-        }
-      });
+          // If there's an active menu and this element isn't its trigger
+          if (this.activeMenu && this.activeMenu.desktopTriggers) {
+            closeTimeout = setTimeout(() => {
+              const isActiveTrigger = Array.from(
+                this.activeMenu.desktopTriggers
+              ).some(trigger => trigger === el);
+              if (!isActiveTrigger) {
+                this.closeMenu();
+              }
+            }, 150);
+          }
+        });
+      }
 
       // Clear the timeout if the mouse leaves the element before 150ms
       el.addEventListener("mouseleave", () => {
@@ -449,15 +461,32 @@ class wmMegaMenu {
       triggers.forEach(trigger => {
         let openTimeout;
 
-        trigger.addEventListener("mouseenter", () => {
-          openTimeout = setTimeout(() => {
-            this.openMenu(menu);
-          }, 80);
-        });
+        if (this.settings.openOnClick) {
+          trigger.addEventListener("click", e => {
+            e.preventDefault();
 
-        trigger.addEventListener("mouseleave", () => {
-          clearTimeout(openTimeout);
-        });
+            if (
+              Array.from(this.activeMenu.desktopTriggers).some(t => t === trigger) &&
+              this.isMenuOpen
+            ) {
+              this.closeMenu();
+            } else {
+              this.openMenu(menu);
+            }
+          });
+        } else {
+          trigger.addEventListener("mouseenter", () => {
+            this.menuTriggerCurrentlyHovered = menu;
+            openTimeout = setTimeout(() => {
+              this.openMenu(menu);
+            }, 80);
+          });
+
+          trigger.addEventListener("mouseleave", () => {
+            clearTimeout(openTimeout);
+            this.menuTriggerCurrentlyHovered = null;
+          });
+        }
 
         trigger.classList.add("mega-menu-link");
         trigger
@@ -470,6 +499,9 @@ class wmMegaMenu {
     });
   }
   openMenu(menu) {
+    if (this.isAnimating) return;
+    this.isAnimating = true;
+
     this.runHooks("beforeOpenMenu", menu);
     if (this.isMenuOpen && this.activeMenu === menu) return;
     this.activeMenu = menu;
@@ -493,6 +525,10 @@ class wmMegaMenu {
     // Start the opening animation using Web Animations API
     if (this.isMenuOpen) {
       this.showActiveMenu();
+      this.isAnimating = false;
+      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
+        this.openMenu(this.menuTriggerCurrentlyHovered);
+      }
       return;
     }
 
@@ -512,6 +548,10 @@ class wmMegaMenu {
       this.handleArrowAnimation("open");
       this.showActiveMenu();
       this.isMenuOpen = true;
+      this.isAnimating = false;
+      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
+        this.openMenu(this.menuTriggerCurrentlyHovered);
+      }
       this.runHooks("afterOpenMenu", menu);
     };
   }
@@ -541,9 +581,15 @@ class wmMegaMenu {
     });
   }
   closeMenu() {
+    if (this.isAnimating) return;
+    this.isAnimating = true;
+
     this.runHooks("beforeCloseMenu");
 
-    if (!this.isMenuOpen) return;
+    if (!this.isMenuOpen) {
+      this.isAnimating = false;
+      return;
+    }
 
     // Start the closing animation using Web Animations API
     const closeAnimation = this.menu.animate(
@@ -564,6 +610,7 @@ class wmMegaMenu {
       document.body.classList.remove("wm-mega-menu-open-animation-complete");
       this.removePageOverlay();
       this.isMenuOpen = false;
+      this.isAnimating = false;
 
       if (this.settings.layout !== "inset") {
         this.revertColorTheme();
@@ -850,7 +897,9 @@ class wmMegaMenu {
       menu.height = height;
 
       let width = parseInt(
-        window.getComputedStyle(menu.item).getPropertyValue("--mega-menu-max-width")
+        window
+          .getComputedStyle(menu.item)
+          .getPropertyValue("--mega-menu-max-width")
       );
       const insetWidthLimit =
         window.innerWidth * (1 - 2 * this.settings.insetMenuWidthLimit);
