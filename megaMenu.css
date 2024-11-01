@@ -297,3 +297,14 @@
 .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
   color: var(--tertiaryButtonTextColor);
 }
+
+/*Outline*/
+body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
+  color: var(--primaryButtonBackgroundColor);
+}
+body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:not(.btn) {
+  color: var(--secondaryButtonBackgroundColor);
+}
+body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
+  color: var(--tertiaryButtonBackgroundColor);
+}
