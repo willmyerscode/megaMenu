@@ -49,7 +49,7 @@ class wmMegaMenu {
     // Disable allowTriggerClickthrough if the device is a touch device
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouchDevice) {
-      this.settings.allowTriggerClickthrough = false;
+      this.settings.openOnClick = true;
     }
 
     this.menus = [];
@@ -473,7 +473,9 @@ class wmMegaMenu {
             e.preventDefault();
 
             if (
-              Array.from(this.activeMenu.desktopTriggers).some(t => t === trigger) &&
+              Array.from(this.activeMenu.desktopTriggers).some(
+                t => t === trigger
+              ) &&
               this.isMenuOpen
             ) {
               this.closeMenu();
@@ -533,7 +535,10 @@ class wmMegaMenu {
     if (this.isMenuOpen) {
       this.showActiveMenu();
       this.isAnimating = false;
-      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
+      if (
+        this.menuTriggerCurrentlyHovered &&
+        this.menuTriggerCurrentlyHovered !== menu
+      ) {
         this.openMenu(this.menuTriggerCurrentlyHovered);
       }
       return;
@@ -556,7 +561,10 @@ class wmMegaMenu {
       this.showActiveMenu();
       this.isMenuOpen = true;
       this.isAnimating = false;
-      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
+      if (
+        this.menuTriggerCurrentlyHovered &&
+        this.menuTriggerCurrentlyHovered !== menu
+      ) {
         this.openMenu(this.menuTriggerCurrentlyHovered);
       }
       this.runHooks("afterOpenMenu", menu);
