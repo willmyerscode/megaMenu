@@ -45,6 +45,13 @@ class wmMegaMenu {
       wmMegaMenu.defaultSettings,
       wmMegaMenu.userSettings
     );
+
+    // Disable allowTriggerClickthrough if the device is a touch device
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouchDevice) {
+      this.settings.allowTriggerClickthrough = false;
+    }
+
     this.menus = [];
     this.isMenuOpen = false;
     this.isMobileMenuOpen = false;
