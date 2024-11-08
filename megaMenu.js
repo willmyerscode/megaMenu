@@ -8,7 +8,7 @@ class wmMegaMenu {
     closeAnimationDelay: 300,
     activeAnimation: "fade",
     activeAnimationDelay: 300,
-    mobileBreakpoint: 767,
+    mobileBreakpoint: 800,
     allowTriggerClickthrough: true,
     setTriggerNoFollow: false,
     triggerIconDisplay: true,
