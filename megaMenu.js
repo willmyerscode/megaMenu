@@ -512,7 +512,10 @@ class wmMegaMenu {
     this.isAnimating = true;
 
     this.runHooks("beforeOpenMenu", menu);
-    if (this.isMenuOpen && this.activeMenu === menu) return;
+    if (this.isMenuOpen && this.activeMenu === menu) {
+      this.isAnimating = false;
+      return;
+    }
     this.activeMenu = menu;
     this.updateHeaderBottom();
     this.setSizing();
