@@ -8,7 +8,6 @@ class wmMegaMenu {
     closeAnimationDelay: 300,
     activeAnimation: "fade",
     activeAnimationDelay: 300,
-    mobileBreakpoint: 800,
     allowTriggerClickthrough: true,
     setTriggerNoFollow: false,
     triggerIconDisplay: true,
@@ -47,7 +46,8 @@ class wmMegaMenu {
     );
 
     // Disable allowTriggerClickthrough if the device is a touch device
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isTouchDevice =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
     if (isTouchDevice) {
       this.settings.openOnClick = true;
     }
@@ -86,8 +86,7 @@ class wmMegaMenu {
     this.buildMobileHTML();
     this.setSizing();
     this.bindEvents();
-    this.isMobile =
-      window.innerWidth <= this.settings.mobileBreakpoint ? true : false;
+    this.isHamburgerMenuOpen = false;
     this.placeMegaMenusByScreenSize();
     this.headerCurrentStyles = JSON.parse(this.header.dataset.currentStyles);
     if (window.Squarespace) {
@@ -795,7 +794,7 @@ class wmMegaMenu {
     this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
     if (
       this.settings.layout === "inset" &&
-      window.innerWidth > this.settings.mobileBreakpoint
+      !this.isMobileMenuOpen
     )
       return;
     this.header.dataset.sectionTheme = this.activeMenu.colorTheme;
@@ -805,7 +804,7 @@ class wmMegaMenu {
     this.menu.dataset.sectionTheme = this.defaultHeaderColorTheme;
     if (
       this.settings.layout === "inset" &&
-      window.innerWidth > this.settings.mobileBreakpoint
+      !this.isMobileMenuOpen
     )
       return;
     if (this.isMobileMenuOpen) {
@@ -1031,16 +1030,13 @@ class wmMegaMenu {
   addResizeEventListener() {
     const handleResize = () => {
       this.closeMenu();
-      this.isMobile =
-        window.innerWidth <= this.settings.mobileBreakpoint ? true : false;
-      if (!this.isMobile) this.closeMenu();
       this.placeMegaMenusByScreenSize();
       this.setSizing();
     };
     window.addEventListener("resize", handleResize);
   }
   placeMegaMenusByScreenSize() {
-    if (this.isMobile) {
+    if (this.isMobileMenuOpen) {
       this.menus.forEach(menu => {
         if (!menu.keepDefaultMobileMenu) {
           menu.mobileFolder.append(menu.item);
@@ -1090,9 +1086,11 @@ class wmMegaMenu {
         this.isMobileMenuOpen = false;
         this.revertColorTheme();
       }
+      this.placeMegaMenusByScreenSize();
     };
     burgers.forEach(burger => burger.addEventListener("click", handleClick));
   }
+
   get activeMenu() {
     return this._activeMenu;
   }
