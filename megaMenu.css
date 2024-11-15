@@ -232,6 +232,7 @@
 }
 .mobile-mega-menu-folder .mega-menu-item{
   text-align: initial;
+  width: 100% !important;
 }
 .mobile-mega-menu-folder .header-menu-nav-folder-content {
   flex-grow: 0;
@@ -299,12 +300,12 @@
 }
 
 /*Outline*/
-body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
+body.primary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
   color: var(--primaryButtonBackgroundColor);
 }
 body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:not(.btn) {
   color: var(--secondaryButtonBackgroundColor);
 }
-body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
+body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
   color: var(--tertiaryButtonBackgroundColor);
 }
