@@ -1,34 +1,37 @@
 class wmMegaMenu {
-  static pluginTitle = "wmMegaMenu";
-  static defaultSettings = {
-    layout: "full-width", // header-adapt or folder
-    openAnimation: "slide", // or fade, slide, swing
-    openAnimationDelay: 300,
-    insetMenuWidthLimit: 0.04,
-    closeAnimationDelay: 300,
-    activeAnimation: "fade",
-    activeAnimationDelay: 300,
-    allowTriggerClickthrough: true,
-    setTriggerNoFollow: false,
-    triggerIconDisplay: true,
-    triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-    </svg>`,
-    openOnClick: false,
-    hooks: {
-      beforeInit: [],
-      afterInit: [
-        function () {
-          wm$?.initializeAllPlugins();
-          //
-        },
-      ],
-      beforeOpenMenu: [],
-      afterOpenMenu: [],
-      beforeCloseMenu: [],
-      afterCloseMenu: [],
-    },
-  };
+  static get pluginTitle() {
+    return "wmMegaMenu";
+  }
+  static get defaultSettings() {
+    return {
+      layout: "full-width", // header-adapt or folder
+      openAnimation: "slide", // or fade, slide, swing
+      openAnimationDelay: 300,
+      insetMenuWidthLimit: 0.04,
+      closeAnimationDelay: 300,
+      activeAnimation: "fade",
+      activeAnimationDelay: 300,
+      allowTriggerClickthrough: true,
+      setTriggerNoFollow: false,
+      triggerIconDisplay: true,
+      triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>`,
+      openOnClick: false,
+      hooks: {
+        beforeInit: [],
+        afterInit: [
+          function () {
+            wm$?.initializeAllPlugins();
+          },
+        ],
+        beforeOpenMenu: [],
+        afterOpenMenu: [],
+        beforeCloseMenu: [],
+        afterCloseMenu: [],
+      },
+    };
+  }
   static get userSettings() {
     return window[wmMegaMenu.pluginTitle + "Settings"] || {};
   }
@@ -792,21 +795,13 @@ class wmMegaMenu {
   }
   matchColorTheme() {
     this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
-    if (
-      this.settings.layout === "inset" &&
-      !this.isMobileMenuOpen
-    )
-      return;
+    if (this.settings.layout === "inset" && !this.isMobileMenuOpen) return;
     this.header.dataset.sectionTheme = this.activeMenu.colorTheme;
     this.mobileHeader.dataset.sectionTheme = this.activeMenu.colorTheme;
   }
   revertColorTheme() {
     this.menu.dataset.sectionTheme = this.defaultHeaderColorTheme;
-    if (
-      this.settings.layout === "inset" &&
-      !this.isMobileMenuOpen
-    )
-      return;
+    if (this.settings.layout === "inset" && !this.isMobileMenuOpen) return;
     if (this.isMobileMenuOpen) {
       window.setTimeout(() => {
         this.header.dataset.sectionTheme = this.mobileMenuOverlayTheme;
@@ -1080,13 +1075,15 @@ class wmMegaMenu {
   addBurgerClickEventListener() {
     const burgers = this.header.querySelectorAll(".header-burger-btn");
     const handleClick = e => {
-      if (e.target.closest("button").matches(".burger--active")) {
-        this.isMobileMenuOpen = true;
-      } else {
-        this.isMobileMenuOpen = false;
-        this.revertColorTheme();
-      }
-      this.placeMegaMenusByScreenSize();
+      window.setTimeout(() => {
+        if (e.target.closest("button").matches(".burger--active")) {
+          this.isMobileMenuOpen = true;
+        } else {
+          this.isMobileMenuOpen = false;
+          this.revertColorTheme();
+        }
+        this.placeMegaMenusByScreenSize();
+      }, 50);
     };
     burgers.forEach(burger => burger.addEventListener("click", handleClick));
   }
