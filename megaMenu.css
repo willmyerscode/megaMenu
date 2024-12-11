@@ -287,6 +287,12 @@
   display: block;
 }
 
+/*Force Gallery Section as Grid to Show*/
+/*Really the data-show attribute should get added to this parent...*/
+.mobile-mega-menu-folder .gallery-grid--layout-grid .gallery-grid-item-wrapper{
+  opacity: 1; 
+}
+
 
 /*Buttons in Mobile Mega Menu Override*/
 .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
