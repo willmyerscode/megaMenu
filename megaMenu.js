@@ -48,10 +48,11 @@ class wmMegaMenu {
       wmMegaMenu.userSettings
     );
 
-    // Disable allowTriggerClickthrough if the device is a touch device
-    const isTouchDevice =
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    if (isTouchDevice) {
+    // Check if device has a fine pointer (mouse) available
+    const hasPointer = window.matchMedia('(pointer: fine)').matches;
+    
+    // If device does not have a fine pointer (mouse), force openOnClick
+    if (!hasPointer) {
       this.settings.openOnClick = true;
     }
 
@@ -485,6 +486,7 @@ class wmMegaMenu {
               this.openMenu(menu);
             }
           });
+          
         } else {
           trigger.addEventListener("mouseenter", () => {
             this.menuTriggerCurrentlyHovered = menu;
