@@ -1211,7 +1211,8 @@ class wmMegaMenu {
   function initMegaMenu() {
     // const els = document.querySelectorAll("[data-mega-menu]");
     const els = document.querySelectorAll(
-      ".header-display-desktop .header-nav-list a[href*='#wm-mega'], .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-']"
+      `.header-display-desktop .header-nav-list a[href*='#wm-mega'], .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-'],
+    [data-wm-plugin="secondary-nav"] .secondary-links a[href*='#wm-mega']`
     );
     if (!els.length) return;
     new wmMegaMenu(els);
