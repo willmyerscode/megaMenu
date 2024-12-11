@@ -1080,6 +1080,13 @@ class wmMegaMenu {
       window.setTimeout(() => {
         if (e.target.closest("button").matches(".burger--active")) {
           this.isMobileMenuOpen = true;
+          const rootFolder = document.querySelector('.header-menu-nav-list [data-folder="root"]');
+          const otherFolders = document.querySelectorAll('.header-menu-nav-list [data-folder]:not([data-folder="root"])');
+          rootFolder.classList.remove('header-menu-nav-folder--open');
+          otherFolders.forEach(folder => {
+            folder.classList.remove('header-menu-nav-item--folder--active');
+          });
+          this.revertColorTheme();
         } else {
           this.isMobileMenuOpen = false;
           this.revertColorTheme();
