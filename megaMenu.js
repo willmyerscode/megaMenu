@@ -83,6 +83,8 @@ class wmMegaMenu {
     this.init();
   }
   async init() {
+    const self = this;
+    wm$.emitEvent("wmMegaMenu:beforeInit", self);
     this.runHooks("beforeInit");
 
     await this.buildStructure();
@@ -105,6 +107,7 @@ class wmMegaMenu {
     this.accessibility.addKeyboardOpenAndClosedNavigation();
 
     this.runHooks("afterInit");
+    wm$.emitEvent("wmMegaMenu:ready", self);
   }
   bindEvents() {
     this.addEditModeObserver();
