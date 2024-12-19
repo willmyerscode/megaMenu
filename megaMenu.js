@@ -144,12 +144,13 @@ class wmMegaMenu {
         el.classList.contains("header-nav-folder-title")
       ) {
         referenceUrl = "/" + urlSlug.split("-wm-mega-")[1] || "";
-        sourceUrl = urlSlug.split("-wm-mega-")[0] || "";
+        sourceUrl = urlSlug.split("-wm-mega-")[0] || "#";
         keepDefaultMobileMenu = true;
         isDropdown = true;
       } else {
         referenceUrl = urlSlug.split("=")[1] || "";
-        sourceUrl = url.pathname;
+        // Check if the href starts with # for anchor-only links
+        sourceUrl = urlSlug.startsWith("#") ? "#" : new URL(el.href).pathname;
       }
 
       if (!desktopTriggers.length || !referenceUrl) return null;
@@ -223,8 +224,9 @@ class wmMegaMenu {
             e.stopPropagation();
           });
         } else {
-          // Prevent Clickthrough
+          
           if (!this.settings.allowTriggerClickthrough) {
+            // Prevent Clickthrough
             el.addEventListener("click", e => {
               e.preventDefault();
               e.stopPropagation();
@@ -245,12 +247,42 @@ class wmMegaMenu {
         }
       });
 
+      // Add active states to desktop triggers
+      const currentPath = window.location.pathname;
+      menu.desktopTriggers.forEach(el => {
+        if (menu.sourceUrl === currentPath) {
+          el.parentElement.classList.add('header-nav-item--active');
+        }
+      });
+
       const itemDiv = document.createElement("div");
       itemDiv.className = "mega-menu-item";
 
       itemDiv.dataset.referenceUrl = menu.referenceUrl;
       menu.contentFrag.querySelectorAll(".page-section").forEach(section => {
         itemDiv.appendChild(section);
+      });
+
+      // Add active states to matching links within mega menu content
+      itemDiv.querySelectorAll('a').forEach(link => {
+        if (!link.href || link.href === '#' || link.getAttribute('href') === '#' || link.getAttribute('href') === '') {
+          return;
+        }
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+        if (linkPath === currentPath) {
+          link.classList.add('mega-menu-nav-item--active');
+          // Add active class to parent desktop triggers
+          menu.desktopTriggers.forEach(trigger => {
+            trigger.parentElement.classList.add('header-nav-item--active');
+          });
+          // Add active class to mobile trigger if it exists
+          if (menu.mobileTrigger) {
+            menu.mobileTrigger.classList.add('header-menu-nav-item--active');
+          } else {
+            // Store this state for when mobile trigger is created later
+            menu.shouldAddMobileActiveClass = true;
+          }
+        }
       });
 
       absoluteMenu.appendChild(itemDiv);
@@ -285,6 +317,10 @@ class wmMegaMenu {
       menu.mobileContainer = menu.mobileFolder.querySelector(
         ".header-menu-nav-folder-content"
       );
+      if (menu.shouldAddMobileActiveClass) {
+        menu.mobileTriggerParent.classList.add('header-menu-nav-item--active');
+        menu.mobileTrigger.ariaCurrent = 'page'
+      }
     });
 
     function buildMobileTrigger(menu) {
