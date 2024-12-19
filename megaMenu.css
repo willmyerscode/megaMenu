@@ -294,7 +294,7 @@
 }
 
 
-/*Buttons in Mobile Mega Menu Override*/
+/*=== Buttons in Mobile Mega Menu Override*/
 .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
   color: var(--primaryButtonTextColor);
 }
@@ -305,7 +305,7 @@
   color: var(--tertiaryButtonTextColor);
 }
 
-/*Outline*/
+/*Outline Buttons in Mobile Mega Menu Override*/
 body.primary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
   color: var(--primaryButtonBackgroundColor);
 }
@@ -314,4 +314,18 @@ body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav 
 }
 body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:not(.btn) {
   color: var(--tertiaryButtonBackgroundColor);
+}
+@media (hover: hover) {
+  body.primary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:hover, body.primary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--primary:hover {
+      background: var(--primaryButtonBackgroundColor);
+      color: var(--primaryButtonTextColor);
+  }
+  body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:hover, body.secondary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--secondary:hover {
+    background: var(--secondaryButtonBackgroundColor);
+    color: var(--secondaryButtonTextColor);
+  }
+  body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:hover, body.tertiary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--tertiary:hover {
+    background: var(--tertiaryButtonBackgroundColor);
+    color: var(--tertiaryButtonTextColor);
+  }
 }
