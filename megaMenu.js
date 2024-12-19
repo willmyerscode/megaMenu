@@ -12,6 +12,9 @@ class wmMegaMenu {
       activeAnimation: "fade",
       activeAnimationDelay: 300,
       allowTriggerClickthrough: true,
+      addActiveTriggerClass: false,
+      activeDesktopTriggerClass: "header-nav-item--active",
+      activeMobileTriggerClass: "header-menu-nav-item--active",
       setTriggerNoFollow: false,
       triggerIconDisplay: true,
       triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -273,11 +276,11 @@ class wmMegaMenu {
           link.classList.add('mega-menu-nav-item--active');
           // Add active class to parent desktop triggers
           menu.desktopTriggers.forEach(trigger => {
-            trigger.parentElement.classList.add('header-nav-item--active');
+            this.settings.addActiveTriggerClass ? trigger.parentElement.classList.add(this.settings.activeDesktopTriggerClass) : null;
           });
           // Add active class to mobile trigger if it exists
           if (menu.mobileTrigger) {
-            menu.mobileTrigger.classList.add('header-menu-nav-item--active');
+            this.settings.addActiveTriggerClass ? menu.mobileTrigger.classList.add(this.settings.activeMobileTriggerClass) : null;
           } else {
             // Store this state for when mobile trigger is created later
             menu.shouldAddMobileActiveClass = true;
@@ -317,8 +320,8 @@ class wmMegaMenu {
       menu.mobileContainer = menu.mobileFolder.querySelector(
         ".header-menu-nav-folder-content"
       );
-      if (menu.shouldAddMobileActiveClass) {
-        menu.mobileTriggerParent.classList.add('header-menu-nav-item--active');
+      if (menu.shouldAddMobileActiveClass && this.settings.addActiveTriggerClass) {
+        menu.mobileTriggerParent.classList.add(this.settings.activeMobileTriggerClass);
         menu.mobileTrigger.ariaCurrent = 'page'
       }
     });
