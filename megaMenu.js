@@ -152,9 +152,13 @@ class wmMegaMenu {
         isDropdown = true;
       } else {
         referenceUrl = urlSlug.split("=")[1] || "";
+        if (!referenceUrl.startsWith("/")) {
+          referenceUrl = "/" + referenceUrl;
+        }
         // Check if the href starts with # for anchor-only links
         sourceUrl = urlSlug.startsWith("#") ? "#" : new URL(el.href).pathname;
       }
+
 
       if (!desktopTriggers.length || !referenceUrl) return null;
 
@@ -978,7 +982,7 @@ class wmMegaMenu {
       this.menuWrapper.style.transition = "none";
     }
 
-    const inset = window.innerWidth * 0.04;
+    const inset = window.innerWidth * this.settings.insetMenuWidthLimit;
     const windowRightEdge = window.innerWidth - inset;
     const windowLeftEdge = inset;
     const menuWrapperWidth = this.activeMenu.width;
