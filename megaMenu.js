@@ -943,6 +943,40 @@ class wmMegaMenu {
       this.absoluteMenu.style.transform = `translateX(-${left}px)`;
     });
   }
+  parseInsetLimit(limit) {
+    // If it's already a number (like 0.04), return it as a proportion
+    if (typeof limit === 'number') {
+      return limit;
+    }
+    
+    // If it's a string with units (like '20px' or '2vh')
+    if (typeof limit === 'string') {
+      // For viewport units
+      if (limit.endsWith('vh')) {
+        return parseFloat(limit) / 100;
+      }
+      if (limit.endsWith('vw')) {
+        return parseFloat(limit) / 100;
+      }
+      // For pixel units, convert to proportion of window width
+      if (limit.endsWith('px')) {
+        return parseFloat(limit) / window.innerWidth;
+      }
+      // For rem units
+      if (limit.endsWith('rem')) {
+        const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        return (parseFloat(limit) * rootFontSize) / window.innerWidth;
+      }
+      // For em units
+      if (limit.endsWith('em')) {
+        const fontSize = parseFloat(getComputedStyle(this.menu).fontSize);
+        return (parseFloat(limit) * fontSize) / window.innerWidth;
+      }
+    }
+    
+    // Default fallback
+    return 0.04;
+  }
   setSizing() {
     this.menus.forEach(menu => {
       menu.item.style.width = ``;
@@ -961,8 +995,8 @@ class wmMegaMenu {
           .getComputedStyle(menu.item)
           .getPropertyValue("--mega-menu-max-width")
       );
-      const insetWidthLimit =
-        window.innerWidth * (1 - 2 * this.settings.insetMenuWidthLimit);
+      const insetLimit = this.parseInsetLimit(this.settings.insetMenuWidthLimit);
+      const insetWidthLimit = window.innerWidth * (1 - 2 * insetLimit);
       if (width > insetWidthLimit) {
         width = insetWidthLimit;
       }
@@ -982,7 +1016,8 @@ class wmMegaMenu {
       this.menuWrapper.style.transition = "none";
     }
 
-    const inset = window.innerWidth * this.settings.insetMenuWidthLimit;
+    const insetLimit = this.parseInsetLimit(this.settings.insetMenuWidthLimit);
+    const inset = window.innerWidth * insetLimit;
     const windowRightEdge = window.innerWidth - inset;
     const windowLeftEdge = inset;
     const menuWrapperWidth = this.activeMenu.width;
