@@ -978,6 +978,13 @@ class wmMegaMenu {
     return 0.04;
   }
   setSizing() {
+    // Get scrollbar width only if there is a vertical scrollbar
+    const getScrollbarWidth = () => {
+      const documentWidth = document.documentElement.clientWidth;
+      const windowWidth = window.innerWidth;
+      return windowWidth - documentWidth;
+    };
+
     this.menus.forEach(menu => {
       menu.item.style.width = ``;
     });
@@ -995,13 +1002,15 @@ class wmMegaMenu {
           .getComputedStyle(menu.item)
           .getPropertyValue("--mega-menu-max-width")
       );
+      const scrollbarWidth = getScrollbarWidth();
       const insetLimit = this.parseInsetLimit(this.settings.insetMenuWidthLimit);
-      const insetWidthLimit = window.innerWidth * (1 - 2 * insetLimit);
+      const insetWidthLimit = (window.innerWidth - scrollbarWidth) * (1 - 2 * insetLimit);
+      
       if (width > insetWidthLimit) {
         width = insetWidthLimit;
       }
       if (this.settings.layout !== "inset") {
-        width = window.innerWidth;
+        width = window.innerWidth - scrollbarWidth;
       }
       menu.width = width;
       menu.item.style.width = `${width}px`;
