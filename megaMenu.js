@@ -1302,8 +1302,8 @@ class wmMegaMenu {
   function initMegaMenu() {
     // const els = document.querySelectorAll("[data-mega-menu]");
     const els = document.querySelectorAll(
-      `.header-display-desktop .header-nav-list a[href*='#wm-mega'], .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-'],
-    [data-wm-plugin="secondary-nav"] .secondary-links a[href*='#wm-mega']`
+      `.header-display-desktop .header-nav-list a[href*='#wm-mega']:not([data-mega-menu-loading-state]), .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-']:not([data-mega-menu-loading-state]),
+    [data-wm-plugin="secondary-nav"] .secondary-links a[href*='#wm-mega']:not([data-mega-menu-loading-state])`
     );
     if (!els.length) return;
     new wmMegaMenu(els);
@@ -1311,6 +1311,8 @@ class wmMegaMenu {
   window.wmMegaMenu = {
     init: () => initMegaMenu(),
   };
-  window.wmMegaMenu.init();
+  if (!document.querySelector("SecondaryNav")) {
+    window.wmMegaMenu.init();
+  }
   window.addEventListener("DOMContentLoaded", initMegaMenu);
 })();
