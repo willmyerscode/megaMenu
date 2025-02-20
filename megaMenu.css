@@ -334,9 +334,9 @@ body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .
 /**
 * Fix odd visibiltiy of summary links within Mega Menu
 **/
-.wm-mega-menu .sqs-block-summary-v2 .summary-item.positioned {
-  visibility: hidden;
+body:not(.wm-mega-menu--open) .wm-mega-menu .sqs-block-summary-v2 .summary-item {
+  visibility: hidden !important;
 }
-body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item.positioned {
+body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
   visibility: visible;
-}
+} 
