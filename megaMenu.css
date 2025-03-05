@@ -12,10 +12,7 @@
 
   --background-overlay-opacity: 50%;
   --background-overlay-hsl: 0, 0%, 0%;
-  --background-overlay-color: hsla(
-    var(--background-overlay-hsl),
-    var(--background-overlay-opacity)
-  );
+  --background-overlay-color: hsla(var(--background-overlay-hsl), var(--background-overlay-opacity));
   --background-overlay-blur: 10px;
 
   --mega-menu-arrow-color: var(--navigationLinkColor);
@@ -56,11 +53,7 @@
   max-height: var(--mega-menu-max-height);
   width: 100%;
   border: var(--mega-menu-border-width) solid var(--mega-menu-border-color);
-  border-bottom: var(
-      --mega-menu-bottom-border-width,
-      var(--mega-menu-border-width)
-    )
-    solid var(--mega-menu-bottom-border-color, var(--mega-menu-border-color));
+  border-bottom: var(--mega-menu-bottom-border-width, var(--mega-menu-border-width)) solid var(--mega-menu-bottom-border-color, var(--mega-menu-border-color));
   pointer-events: auto;
   box-sizing: border-box;
 }
@@ -68,14 +61,11 @@
   width: 100%;
   border-radius: var(--mega-menu-border-radius);
   max-height: calc(var(--mega-menu-max-height) - var(--header-bottom));
-  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease,
-    max-width 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease, max-width 0.3s ease;
 }
 .wm-mega-menu[data-layout="full-width"] .mega-menu-wrapper {
-  border-radius: 0 0 var(--mega-menu-border-radius)
-    var(--mega-menu-border-radius);
-  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease,
-    max-width 0.3s ease;
+  border-radius: 0 0 var(--mega-menu-border-radius) var(--mega-menu-border-radius);
+  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease, max-width 0.3s ease;
 }
 
 .wm-mega-menu.open .mega-menu-wrapper {
@@ -151,9 +141,7 @@
   position: relative;
 }
 .header-nav-item:not(:has(svg)) > a[href*="#wm-mega"] {
-  margin-right: calc(
-    var(--trigger-icon-size, 15px) + var(--trigger-icon-gap, 4px)
-  );
+  margin-right: calc(var(--trigger-icon-size, 15px) + var(--trigger-icon-gap, 4px));
 }
 .mega-menu-link > svg {
   width: var(--trigger-icon-size);
@@ -217,7 +205,7 @@
 }
 
 /* Swing animation */
-#header:has(.wm-mega-menu[data-open-animation="swing"]) {
+body:not(.header--menu-open) #header:has(.wm-mega-menu[data-open-animation="swing"]) {
   perspective: 1000px;
   transform-style: preserve-3d;
 }
@@ -227,21 +215,18 @@
 }
 
 /*Mobile Folders*/
-.mobile-mega-menu-folder.header-menu-nav-folder{
+.mobile-mega-menu-folder.header-menu-nav-folder {
   justify-content: start;
 }
-.mobile-mega-menu-folder .mega-menu-item{
+.mobile-mega-menu-folder .mega-menu-item {
   text-align: initial;
   width: 100% !important;
 }
 .mobile-mega-menu-folder .header-menu-nav-folder-content {
   flex-grow: 0;
-
 }
 
-.site-wrapper
-  .header-menu:not(:has([data-folder="root"].header-menu-nav-folder--open))
-  .header-menu-bg {
+.site-wrapper .header-menu:not(:has([data-folder="root"].header-menu-nav-folder--open)) .header-menu-bg {
   /* transition: background-color 0.3s ease 0.3s; */
   will-change: background-color;
 }
@@ -260,13 +245,7 @@
 }
 @media (min-width: 768px) {
   .wm-mega-menu[data-layout="inset"] .mega-menu-item .fluid-engine {
-    --container-width: min(
-      var(--sqs-site-max-width, 1500px),
-      calc(
-        var(--mega-menu-max-width) - var(--sqs-site-gutter, 4vw) * 2 -
-          var(--inset-padding)
-      )
-    );
+    --container-width: min(var(--sqs-site-max-width, 1500px), calc(var(--mega-menu-max-width) - var(--sqs-site-gutter, 4vw) * 2 - var(--inset-padding)));
   }
 }
 
@@ -289,10 +268,9 @@
 
 /*Force Gallery Section as Grid to Show*/
 /*Really the data-show attribute should get added to this parent...*/
-.mobile-mega-menu-folder .gallery-grid--layout-grid .gallery-grid-item-wrapper{
-  opacity: 1; 
+.mobile-mega-menu-folder .gallery-grid--layout-grid .gallery-grid-item-wrapper {
+  opacity: 1;
 }
-
 
 /*=== Buttons in Mobile Mega Menu Override*/
 .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:not(.btn) {
@@ -316,20 +294,22 @@ body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .
   color: var(--tertiaryButtonBackgroundColor);
 }
 @media (hover: hover) {
-  body.primary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:hover, body.primary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--primary:hover {
-      background: var(--primaryButtonBackgroundColor);
-      color: var(--primaryButtonTextColor);
+  body.primary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--primary:hover,
+  body.primary-button-style-outline .tock-block div#Tock_widget_container > div.TockWidgetWrapper .TockButton-blue.sqs-button-element--primary:hover {
+    background: var(--primaryButtonBackgroundColor);
+    color: var(--primaryButtonTextColor);
   }
-  body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:hover, body.secondary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--secondary:hover {
+  body.secondary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--secondary:hover,
+  body.secondary-button-style-outline .tock-block div#Tock_widget_container > div.TockWidgetWrapper .TockButton-blue.sqs-button-element--secondary:hover {
     background: var(--secondaryButtonBackgroundColor);
     color: var(--secondaryButtonTextColor);
   }
-  body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:hover, body.tertiary-button-style-outline .tock-block div#Tock_widget_container>div.TockWidgetWrapper .TockButton-blue.sqs-button-element--tertiary:hover {
+  body.tertiary-button-style-outline .site-wrapper .header-menu .header-menu-nav .page-section a.sqs-button-element--tertiary:hover,
+  body.tertiary-button-style-outline .tock-block div#Tock_widget_container > div.TockWidgetWrapper .TockButton-blue.sqs-button-element--tertiary:hover {
     background: var(--tertiaryButtonBackgroundColor);
     color: var(--tertiaryButtonTextColor);
   }
 }
-
 
 /**
 * Fix odd visibiltiy of summary links within Mega Menu
