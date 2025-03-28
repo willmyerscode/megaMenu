@@ -413,9 +413,9 @@ class wmMegaMenu {
       });
 
       // Create and append the chevron span
-      const chevronSpan = document.createElement("span");
-      chevronSpan.className = "chevron chevron--left";
-      backButton.appendChild(chevronSpan);
+      // const chevronSpan = document.createElement("span");
+      // chevronSpan.className = "chevron chevron--left";
+      // backButton.appendChild(chevronSpan);
 
       // Create and append the text span
       const textSpan = document.createElement("span");
