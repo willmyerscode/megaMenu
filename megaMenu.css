@@ -225,6 +225,11 @@ body:not(.header--menu-open) #header:has(.wm-mega-menu[data-open-animation="swin
 .mobile-mega-menu-folder .header-menu-nav-folder-content {
   flex-grow: 0;
 }
+/*Hide duplicate dropdown icon*/
+[data-folder-id] .header-dropdown-icon + .header-dropdown-icon,
+[data-folder] .header-dropdown-icon + .header-dropdown-icon {
+  display: none;
+}
 
 .site-wrapper .header-menu:not(:has([data-folder="root"].header-menu-nav-folder--open)) .header-menu-bg {
   /* transition: background-color 0.3s ease 0.3s; */
@@ -232,7 +237,7 @@ body:not(.header--menu-open) #header:has(.wm-mega-menu[data-open-animation="swin
 }
 
 .header-nav-folder-title.mega-menu-link + .header-nav-folder-content {
-  display: none;
+  display: none !important;
 }
 
 /*Inset Layout*/
