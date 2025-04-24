@@ -271,25 +271,31 @@ class wmMegaMenu {
       });
 
       // Add active states to matching links within mega menu content
-      itemDiv.querySelectorAll('a').forEach(link => {
-        if (!link.href || link.href === '#' || link.getAttribute('href') === '#' || link.getAttribute('href') === '') {
+itemDiv.querySelectorAll("a").forEach(link => {
+        if (!link.href || link.href === "#" || link.getAttribute("href") === "#" || link.getAttribute("href") === "") {
           return;
         }
-        const linkPath = new URL(link.href, window.location.origin).pathname;
-        if (linkPath === currentPath) {
-          link.classList.add('mega-menu-nav-item--active');
-          // Add active class to parent desktop triggers
-          menu.desktopTriggers.forEach(trigger => {
-            this.settings.addActiveTriggerClass ? trigger.parentElement.classList.add(this.settings.activeDesktopTriggerClass) : null;
-          });
-          // Add active class to mobile trigger if it exists
-          if (menu.mobileTrigger) {
-            this.settings.addActiveTriggerClass ? menu.mobileTrigger.classList.add(this.settings.activeMobileTriggerClass) : null;
-          } else {
-            // Store this state for when mobile trigger is created later
-            menu.shouldAddMobileActiveClass = true;
+        
+        // Check if the link href can be parsed as a URL with the current origin as base
+        if (URL.canParse(link.href, window.location.origin)) {
+          const linkPath = new URL(link.href, window.location.origin).pathname;
+
+          if (linkPath === currentPath) {
+            link.classList.add("mega-menu-nav-item--active");
+            // Add active class to parent desktop triggers
+            menu.desktopTriggers.forEach(trigger => {
+              this.settings.addActiveTriggerClass ? trigger.parentElement.classList.add(this.settings.activeDesktopTriggerClass) : null;
+            });
+            // Add active class to mobile trigger if it exists
+            if (menu.mobileTrigger) {
+              this.settings.addActiveTriggerClass ? menu.mobileTrigger.classList.add(this.settings.activeMobileTriggerClass) : null;
+            } else {
+              // Store this state for when mobile trigger is created later
+              menu.shouldAddMobileActiveClass = true;
+            }
           }
         }
+        // Links with unparseable hrefs (like tel:, mailto:) will be skipped
       });
 
       absoluteMenu.appendChild(itemDiv);
