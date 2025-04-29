@@ -41,6 +41,10 @@
   z-index: 9;
 }
 
+.wm-mega-menu--open [data-header-style="theme"].header .header-announcement-bar-wrapper {
+  background-color: var(--siteBackgroundColor);
+}
+
 /*Wrapper*/
 .wm-mega-menu .mega-menu-wrapper {
   position: relative;
