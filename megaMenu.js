@@ -38,6 +38,10 @@ class wmMegaMenu {
   static get userSettings() {
     return window[wmMegaMenu.pluginTitle + "Settings"] || {};
   }
+  
+  // Add static property to track if global click listener has been attached
+  static globalClickListenerAttached = false;
+  
   constructor(els) {
     if (els[0].dataset.megaMenuLoadingState) {
       return;
@@ -45,15 +49,11 @@ class wmMegaMenu {
       els.forEach(el => (el.dataset.megaMenuLoadingState = "loading"));
     }
     this.els = els;
-    this.settings = wm$.deepMerge(
-      {},
-      wmMegaMenu.defaultSettings,
-      wmMegaMenu.userSettings
-    );
+    this.settings = wm$.deepMerge({}, wmMegaMenu.defaultSettings, wmMegaMenu.userSettings);
 
     // Check if device has a fine pointer (mouse) available
-    const hasPointer = window.matchMedia('(pointer: fine)').matches;
-    
+    const hasPointer = window.matchMedia("(pointer: fine)").matches;
+
     // If device does not have a fine pointer (mouse), force openOnClick
     if (!hasPointer) {
       this.settings.openOnClick = true;
@@ -133,19 +133,14 @@ class wmMegaMenu {
     const promises = Array.from(this.els).map(async (el, index) => {
       const url = new URL(el.href);
       const urlSlug = el.getAttribute("href");
-      let desktopTriggers = document.querySelectorAll(
-          `#header .header-inner [href="${urlSlug}"]`
-        ),
+      let desktopTriggers = document.querySelectorAll(`#header .header-inner [href="${urlSlug}"]`),
         referenceUrl,
         sourceUrl,
         isDropdown = false,
         keepDefaultMobileMenu = false;
 
       // If Dropdown
-      if (
-        urlSlug.includes("-wm-mega-") &&
-        el.classList.contains("header-nav-folder-title")
-      ) {
+      if (urlSlug.includes("-wm-mega-") && el.classList.contains("header-nav-folder-title")) {
         referenceUrl = "/" + urlSlug.split("-wm-mega-")[1] || "";
         sourceUrl = urlSlug.split("-wm-mega-")[0] || "#";
         keepDefaultMobileMenu = true;
@@ -159,18 +154,14 @@ class wmMegaMenu {
         sourceUrl = urlSlug.startsWith("#") ? "#" : new URL(el.href).pathname;
       }
 
-
       if (!desktopTriggers.length || !referenceUrl) return null;
 
       const triggerText = desktopTriggers[0].innerText;
-      const mobileTriggerParent = document.querySelector(
-        `#header .header-menu [href="${urlSlug}"]`
-      ).parentElement;
+      const mobileTriggerParent = document.querySelector(`#header .header-menu [href="${urlSlug}"]`).parentElement;
 
       try {
         const contentFrag = await wm$?.getFragment(referenceUrl);
-        const colorTheme =
-          contentFrag.querySelector(".page-section").dataset.sectionTheme;
+        const colorTheme = contentFrag.querySelector(".page-section").dataset.sectionTheme;
         return {
           order: index + 1,
           triggerText,
@@ -231,7 +222,6 @@ class wmMegaMenu {
             e.stopPropagation();
           });
         } else {
-          
           if (!this.settings.allowTriggerClickthrough) {
             // Prevent Clickthrough
             el.addEventListener("click", e => {
@@ -258,7 +248,7 @@ class wmMegaMenu {
       const currentPath = window.location.pathname;
       menu.desktopTriggers.forEach(el => {
         if (menu.sourceUrl === currentPath) {
-          el.parentElement.classList.add('header-nav-item--active');
+          el.parentElement.classList.add("header-nav-item--active");
         }
       });
 
@@ -271,11 +261,11 @@ class wmMegaMenu {
       });
 
       // Add active states to matching links within mega menu content
-itemDiv.querySelectorAll("a").forEach(link => {
+      itemDiv.querySelectorAll("a").forEach(link => {
         if (!link.href || link.href === "#" || link.getAttribute("href") === "#" || link.getAttribute("href") === "") {
           return;
         }
-        
+
         // Check if the link href can be parsed as a URL with the current origin as base
         if (URL.canParse(link.href, window.location.origin)) {
           const linkPath = new URL(link.href, window.location.origin).pathname;
@@ -314,9 +304,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
     this.menus.forEach(menu => {
       const newMobileTrigger = buildMobileTrigger(menu);
       menu.mobileFolder = buildMobileFolder(menu.referenceUrl);
-      menu.mobileBackButton = menu.mobileFolder.querySelector(
-        'a[data-action="back"]'
-      );
+      menu.mobileBackButton = menu.mobileFolder.querySelector('a[data-action="back"]');
 
       menu.mobileTrigger = null;
       menu.mobileContainer = null;
@@ -327,12 +315,10 @@ itemDiv.querySelectorAll("a").forEach(link => {
       menu.mobileTriggerParent.innerHTML = "";
       menu.mobileTriggerParent.append(newMobileTrigger);
       menu.mobileTrigger = menu.mobileTriggerParent.querySelector("a");
-      menu.mobileContainer = menu.mobileFolder.querySelector(
-        ".header-menu-nav-folder-content"
-      );
+      menu.mobileContainer = menu.mobileFolder.querySelector(".header-menu-nav-folder-content");
       if (menu.shouldAddMobileActiveClass && this.settings.addActiveTriggerClass) {
         menu.mobileTriggerParent.classList.add(this.settings.activeMobileTriggerClass);
-        menu.mobileTrigger.ariaCurrent = 'page'
+        menu.mobileTrigger.ariaCurrent = "page";
       }
     });
 
@@ -373,9 +359,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
         e.stopPropagation();
 
         const rootFolder = mobileLink.closest('[data-folder="root"]');
-        const folderToOpen = document.querySelector(
-          `.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`
-        );
+        const folderToOpen = document.querySelector(`.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`);
 
         rootFolder.classList.add("header-menu-nav-folder--open");
         folderToOpen.classList.add("header-menu-nav-folder--active");
@@ -387,8 +371,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
       // Create the main container div
       const folder = document.createElement("div");
       folder.setAttribute("data-folder", folderPath);
-      folder.className =
-        "header-menu-nav-folder mobile-mega-menu-folder site-wrapper";
+      folder.className = "header-menu-nav-folder mobile-mega-menu-folder site-wrapper";
 
       // Create the folder content div
       const folderContent = document.createElement("div");
@@ -396,13 +379,11 @@ itemDiv.querySelectorAll("a").forEach(link => {
 
       // Create the controls container
       const controlsContainer = document.createElement("div");
-      controlsContainer.className =
-        "header-menu-controls container header-menu-nav-item";
+      controlsContainer.className = "header-menu-controls container header-menu-nav-item";
 
       // Create the back button
       const backButton = document.createElement("a");
-      backButton.className =
-        "header-menu-controls-control header-menu-controls-control--active";
+      backButton.className = "header-menu-controls-control header-menu-controls-control--active";
       backButton.setAttribute("data-action", "back");
       backButton.href = "/";
       backButton.tabIndex = -1;
@@ -463,9 +444,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
           // If there's an active menu and this element isn't its trigger
           if (this.activeMenu && this.activeMenu.desktopTriggers) {
             closeTimeout = setTimeout(() => {
-              const isActiveTrigger = Array.from(
-                this.activeMenu.desktopTriggers
-              ).some(trigger => trigger === el);
+              const isActiveTrigger = Array.from(this.activeMenu.desktopTriggers).some(trigger => trigger === el);
               if (!isActiveTrigger) {
                 this.closeMenu();
               }
@@ -481,6 +460,19 @@ itemDiv.querySelectorAll("a").forEach(link => {
         }
       });
     });
+
+    // Only attach global click listener once
+    if (!wmMegaMenu.globalClickListenerAttached) {
+      document.addEventListener("click", e => {
+        if (e.target.closest(".mobile-mega-menu-folder a[href]")) {
+          const menuTrigger = document.querySelector("button.header-burger-btn.burger--active");
+          if (menuTrigger) {
+            menuTrigger.click();
+          }
+        }
+      });
+      wmMegaMenu.globalClickListenerAttached = true;
+    }
   }
   addClickEventListener() {
     this.menu.addEventListener("click", e => {
@@ -527,18 +519,12 @@ itemDiv.querySelectorAll("a").forEach(link => {
           trigger.addEventListener("click", e => {
             e.preventDefault();
 
-            if (
-              Array.from(this.activeMenu.desktopTriggers).some(
-                t => t === trigger
-              ) &&
-              this.isMenuOpen
-            ) {
+            if (Array.from(this.activeMenu.desktopTriggers).some(t => t === trigger) && this.isMenuOpen) {
               this.closeMenu();
             } else {
               this.openMenu(menu);
             }
           });
-          
         } else {
           trigger.addEventListener("mouseenter", () => {
             this.menuTriggerCurrentlyHovered = menu;
@@ -554,12 +540,8 @@ itemDiv.querySelectorAll("a").forEach(link => {
         }
 
         trigger.classList.add("mega-menu-link");
-        trigger
-          .closest(".header-nav-item")
-          ?.classList.add("header-nav-item--mega-menu");
-        this.settings.triggerIconDisplay
-          ? trigger.insertAdjacentHTML("beforeend", this.settings.triggerIcon)
-          : null;
+        trigger.closest(".header-nav-item")?.classList.add("header-nav-item--mega-menu");
+        this.settings.triggerIconDisplay ? trigger.insertAdjacentHTML("beforeend", this.settings.triggerIcon) : null;
       });
     });
   }
@@ -594,10 +576,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
     if (this.isMenuOpen) {
       this.showActiveMenu();
       this.isAnimating = false;
-      if (
-        this.menuTriggerCurrentlyHovered &&
-        this.menuTriggerCurrentlyHovered !== menu
-      ) {
+      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
         this.openMenu(this.menuTriggerCurrentlyHovered);
       }
       return;
@@ -620,10 +599,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
       this.showActiveMenu();
       this.isMenuOpen = true;
       this.isAnimating = false;
-      if (
-        this.menuTriggerCurrentlyHovered &&
-        this.menuTriggerCurrentlyHovered !== menu
-      ) {
+      if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
         this.openMenu(this.menuTriggerCurrentlyHovered);
       }
       this.runHooks("afterOpenMenu", menu);
@@ -642,14 +618,10 @@ itemDiv.querySelectorAll("a").forEach(link => {
       if (this.activeMenu === menu) {
         this.handleArrowAnimation("move");
 
-        menu.desktopTriggers.forEach(trigger =>
-          trigger.parentElement.classList.add("mega-menu--active")
-        );
+        menu.desktopTriggers.forEach(trigger => trigger.parentElement.classList.add("mega-menu--active"));
         menu.item.classList.add("active");
       } else {
-        menu.desktopTriggers.forEach(trigger =>
-          trigger.parentElement.classList.remove("mega-menu--active")
-        );
+        menu.desktopTriggers.forEach(trigger => trigger.parentElement.classList.remove("mega-menu--active"));
         menu.item.classList.remove("active");
       }
     });
@@ -666,14 +638,11 @@ itemDiv.querySelectorAll("a").forEach(link => {
     }
 
     // Start the closing animation using Web Animations API
-    const closeAnimation = this.menu.animate(
-      this.getCloseAnimationKeyframes(),
-      {
-        duration: this.settings.closeAnimationDelay,
-        easing: "ease-in",
-        fill: "forwards",
-      }
-    );
+    const closeAnimation = this.menu.animate(this.getCloseAnimationKeyframes(), {
+      duration: this.settings.closeAnimationDelay,
+      easing: "ease-in",
+      fill: "forwards",
+    });
 
     this.handleArrowAnimation("close");
 
@@ -691,9 +660,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
       }
 
       this.menus.forEach(menu => {
-        menu.desktopTriggers.forEach(trigger =>
-          trigger.parentElement.classList.remove("mega-menu--active")
-        );
+        menu.desktopTriggers.forEach(trigger => trigger.parentElement.classList.remove("mega-menu--active"));
         menu.item.classList.remove("active");
       });
 
@@ -728,14 +695,10 @@ itemDiv.querySelectorAll("a").forEach(link => {
       ],
     };
 
-    const animation =
-      animations[this.settings.openAnimation] || animations.fade;
+    const animation = animations[this.settings.openAnimation] || animations.fade;
 
     if (typeof animation === "function") {
-      const distance =
-        this.settings.layout === "inset"
-          ? "-20px"
-          : `-${this.activeMenu.height}px`;
+      const distance = this.settings.layout === "inset" ? "-20px" : `-${this.activeMenu.height}px`;
       return animation(distance);
     }
 
@@ -769,14 +732,10 @@ itemDiv.querySelectorAll("a").forEach(link => {
       ],
     };
 
-    const animation =
-      animations[this.settings.openAnimation] || animations.fade;
+    const animation = animations[this.settings.openAnimation] || animations.fade;
 
     if (typeof animation === "function") {
-      const distance =
-        this.settings.layout === "inset"
-          ? "-20px"
-          : `-${this.activeMenu.height}px`;
+      const distance = this.settings.layout === "inset" ? "-20px" : `-${this.activeMenu.height}px`;
       return animation(distance);
     }
 
@@ -790,13 +749,9 @@ itemDiv.querySelectorAll("a").forEach(link => {
       const menuItem = this.activeMenu;
 
       const menuWrapperRect = menuWrapper.getBoundingClientRect();
-      const menuTriggerRect =
-        menuItem.desktopTriggers[0].getBoundingClientRect();
+      const menuTriggerRect = menuItem.desktopTriggers[0].getBoundingClientRect();
 
-      this.arrowX =
-        menuTriggerRect.left +
-        menuTriggerRect.width / 2 -
-        arrow.offsetWidth / 2;
+      this.arrowX = menuTriggerRect.left + menuTriggerRect.width / 2 - arrow.offsetWidth / 2;
       this.arrowY = menuWrapperRect.top - arrow.offsetHeight / 2;
     };
 
@@ -818,14 +773,11 @@ itemDiv.querySelectorAll("a").forEach(link => {
       );
     } else if (action === "move") {
       setArrowPosition();
-      return arrow.animate(
-        [{left: `${this.arrowX}px`, top: `${this.arrowY}px`}],
-        {
-          duration: 300,
-          easing: "ease",
-          fill: "forwards",
-        }
-      );
+      return arrow.animate([{left: `${this.arrowX}px`, top: `${this.arrowY}px`}], {
+        duration: 300,
+        easing: "ease",
+        fill: "forwards",
+      });
     } else if (action === "close") {
       return arrow.animate(
         [
@@ -919,18 +871,13 @@ itemDiv.querySelectorAll("a").forEach(link => {
     }
 
     // const height = this.activeMenu.height;
-    let height = Array.from(this.activeMenu.item.children).reduce(
-      (total, child) => {
-        return total + child.offsetHeight;
-      },
-      0
-    );
+    let height = Array.from(this.activeMenu.item.children).reduce((total, child) => {
+      return total + child.offsetHeight;
+    }, 0);
 
     // Add the top and bottom border widths
     const menuWrapperStyle = window.getComputedStyle(this.menuWrapper);
-    height +=
-      parseFloat(menuWrapperStyle.borderTopWidth) +
-      parseFloat(menuWrapperStyle.borderBottomWidth);
+    height += parseFloat(menuWrapperStyle.borderTopWidth) + parseFloat(menuWrapperStyle.borderBottomWidth);
 
     const width = this.activeMenu.width;
 
@@ -951,35 +898,35 @@ itemDiv.querySelectorAll("a").forEach(link => {
   }
   parseInsetLimit(limit) {
     // If it's already a number (like 0.04), return it as a proportion
-    if (typeof limit === 'number') {
+    if (typeof limit === "number") {
       return limit;
     }
-    
+
     // If it's a string with units (like '20px' or '2vh')
-    if (typeof limit === 'string') {
+    if (typeof limit === "string") {
       // For viewport units
-      if (limit.endsWith('vh')) {
+      if (limit.endsWith("vh")) {
         return parseFloat(limit) / 100;
       }
-      if (limit.endsWith('vw')) {
+      if (limit.endsWith("vw")) {
         return parseFloat(limit) / 100;
       }
       // For pixel units, convert to proportion of window width
-      if (limit.endsWith('px')) {
+      if (limit.endsWith("px")) {
         return parseFloat(limit) / window.innerWidth;
       }
       // For rem units
-      if (limit.endsWith('rem')) {
+      if (limit.endsWith("rem")) {
         const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
         return (parseFloat(limit) * rootFontSize) / window.innerWidth;
       }
       // For em units
-      if (limit.endsWith('em')) {
+      if (limit.endsWith("em")) {
         const fontSize = parseFloat(getComputedStyle(this.menu).fontSize);
         return (parseFloat(limit) * fontSize) / window.innerWidth;
       }
     }
-    
+
     // Default fallback
     return 0.04;
   }
@@ -1003,15 +950,11 @@ itemDiv.querySelectorAll("a").forEach(link => {
       }, 0);
       menu.height = height;
 
-      let width = parseInt(
-        window
-          .getComputedStyle(menu.item)
-          .getPropertyValue("--mega-menu-max-width")
-      );
+      let width = parseInt(window.getComputedStyle(menu.item).getPropertyValue("--mega-menu-max-width"));
       const scrollbarWidth = getScrollbarWidth();
       const insetLimit = this.parseInsetLimit(this.settings.insetMenuWidthLimit);
       const insetWidthLimit = (window.innerWidth - scrollbarWidth) * (1 - 2 * insetLimit);
-      
+
       if (width > insetWidthLimit) {
         width = insetWidthLimit;
       }
@@ -1040,10 +983,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
     const activeTrigger = this.activeMenu.desktopTriggers[0];
     let translateX = 0;
 
-    if (
-      this.headerCurrentStyles?.layout === "navLeft" ||
-      this.headerCurrentStyles?.layout === "brandingCenter"
-    ) {
+    if (this.headerCurrentStyles?.layout === "navLeft" || this.headerCurrentStyles?.layout === "brandingCenter") {
       const triggerRect = activeTrigger.getBoundingClientRect();
 
       translateX = triggerRect.left - 34;
@@ -1078,10 +1018,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
         const overlap = windowLeftEdge - translateX;
         translateX = inset;
       }
-    } else if (
-      this.headerCurrentStyles?.layout === "navCenter" ||
-      this.headerCurrentStyles?.layout === "brandingCenterNavCenter"
-    ) {
+    } else if (this.headerCurrentStyles?.layout === "navCenter" || this.headerCurrentStyles?.layout === "brandingCenterNavCenter") {
       const triggerRect = activeTrigger.getBoundingClientRect();
       const triggerCenter = triggerRect.left + triggerRect.width / 2;
 
@@ -1102,10 +1039,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
     // Get the current transform value
     const computedStyle = window.getComputedStyle(this.menuWrapper);
     const currentTransform = computedStyle.transform;
-    const currentTranslateX =
-      currentTransform !== "none"
-        ? parseFloat(currentTransform.split(",")[4])
-        : 0;
+    const currentTranslateX = currentTransform !== "none" ? parseFloat(currentTransform.split(",")[4]) : 0;
 
     // Calculate the new transform
     const newTransform = `translateX(${translateX}px)`;
@@ -1182,9 +1116,9 @@ itemDiv.querySelectorAll("a").forEach(link => {
           this.isMobileMenuOpen = false;
           const rootFolder = document.querySelector('.header-menu-nav-list [data-folder="root"]');
           const otherFolders = document.querySelectorAll('.header-menu-nav-list [data-folder]:not([data-folder="root"])');
-          rootFolder.classList.remove('header-menu-nav-folder--open');
+          rootFolder.classList.remove("header-menu-nav-folder--open");
           otherFolders.forEach(folder => {
-            folder.classList.remove('header-menu-nav-folder--active');
+            folder.classList.remove("header-menu-nav-folder--active");
           });
           this.revertColorTheme();
         }
@@ -1204,21 +1138,13 @@ itemDiv.querySelectorAll("a").forEach(link => {
   handleAccessibility() {
     const isElementFocusable = el => {
       // Check if the element is visible and not disabled
-      return (
-        el.offsetWidth > 0 &&
-        el.offsetHeight > 0 &&
-        getComputedStyle(el).visibility !== "hidden" &&
-        !el.disabled
-      );
+      return el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== "hidden" && !el.disabled;
     };
 
     const trapFocus = menu => {
-      const focusableElements = Array.from(menu.focusableElements).filter(
-        isElementFocusable
-      );
+      const focusableElements = Array.from(menu.focusableElements).filter(isElementFocusable);
       const firstFocusableElement = focusableElements[0];
-      const lastFocusableElement =
-        focusableElements[focusableElements.length - 1];
+      const lastFocusableElement = focusableElements[focusableElements.length - 1];
 
       focusableElements.forEach(el => {
         el.removeAttribute("tabindex");
@@ -1285,9 +1211,7 @@ itemDiv.querySelectorAll("a").forEach(link => {
     const init = () => {
       this.menus.forEach(menu => {
         const item = menu.item;
-        const focusableElements = item.querySelectorAll(
-          'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
-        );
+        const focusableElements = item.querySelectorAll('a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select');
         focusableElements.forEach(el => {
           el.setAttribute("tabindex", "-1");
         });
