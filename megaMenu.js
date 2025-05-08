@@ -267,8 +267,10 @@ class wmMegaMenu {
         }
 
         // Check if the link href can be parsed as a URL with the current origin as base
-        if (URL.canParse(link.href, window.location.origin)) {
-          const linkPath = new URL(link.href, window.location.origin).pathname;
+        try {
+          // Attempt to parse the link's href
+          const linkUrl = new URL(link.href, window.location.origin);
+          const linkPath = linkUrl.pathname;
 
           if (linkPath === currentPath) {
             link.classList.add("mega-menu-nav-item--active");
@@ -284,6 +286,8 @@ class wmMegaMenu {
               menu.shouldAddMobileActiveClass = true;
             }
           }
+        } catch (e) {
+          console.warn(`Could not parse URL: ${link.href}`, e);
         }
         // Links with unparseable hrefs (like tel:, mailto:) will be skipped
       });
