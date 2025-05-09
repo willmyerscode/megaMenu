@@ -11,6 +11,7 @@ class wmMegaMenu {
       closeAnimationDelay: 300,
       activeAnimation: "fade",
       activeAnimationDelay: 300,
+      closeOnScroll: true,
       allowTriggerClickthrough: true,
       addActiveTriggerClass: false,
       activeDesktopTriggerClass: "header-nav-item--active",
@@ -1098,7 +1099,7 @@ class wmMegaMenu {
       if (!this.isMenuOpen) return;
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          if (this.header.classList.contains("shrink")) {
+          if (this.settings.closeOnScroll) {  
             this.closeMenu();
           }
           ticking = false;
