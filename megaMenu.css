@@ -41,7 +41,12 @@
   z-index: 9;
 }
 
-.wm-mega-menu--open [data-header-style="theme"].header .header-announcement-bar-wrapper {
+.wm-mega-menu-plugin [data-header-style="theme"].header .header-announcement-bar-wrapper,
+.wm-mega-menu-plugin [data-header-style="dynamic"].header .header-announcement-bar-wrapper {
+  transition: background-color 300ms ease 0ms;
+}
+.wm-mega-menu--open [data-header-style="theme"].header .header-announcement-bar-wrapper,
+.wm-mega-menu--open [data-header-style="dynamic"].header .header-announcement-bar-wrapper {
   background-color: var(--siteBackgroundColor);
 }
 
