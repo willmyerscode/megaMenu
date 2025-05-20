@@ -332,3 +332,13 @@ body:not(.wm-mega-menu--open) .wm-mega-menu .sqs-block-summary-v2 .summary-item 
 body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
   visibility: visible;
 } 
+
+/**
+* With Tabs Plugin
+**/
+.wm-mega-menu .wm-tabs{
+  display:none;
+}
+.wm-mega-menu.open .wm-tabs{
+  display:block;
+}
