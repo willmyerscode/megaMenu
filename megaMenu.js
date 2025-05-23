@@ -555,6 +555,7 @@ class wmMegaMenu {
     this.isAnimating = true;
 
     this.runHooks("beforeOpenMenu", menu);
+    wm$.emitEvent("wmMegaMenu:beforeOpenMenu", menu); 
     if (this.isMenuOpen && this.activeMenu === menu) {
       this.isAnimating = false;
       return;
@@ -607,6 +608,7 @@ class wmMegaMenu {
       if (this.menuTriggerCurrentlyHovered && this.menuTriggerCurrentlyHovered !== menu) {
         this.openMenu(this.menuTriggerCurrentlyHovered);
       }
+      wm$.emitEvent("wmMegaMenu:afterOpenMenu", menu);
       this.runHooks("afterOpenMenu", menu);
     };
   }
