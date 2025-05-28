@@ -342,3 +342,8 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 .wm-mega-menu.open .wm-tabs{
   display:block;
 }
+
+/*Account Link*/
+.wm-mega-menu-plugin #accountFrame{
+  z-index: 20002;
+}
