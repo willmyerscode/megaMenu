@@ -157,6 +157,25 @@
   animation: wmMoveUpFadeIn 0.3s ease-out;
 }
 
+/*Squarespace Icons*/
+.mega-menu-link .mega-menu-dropdown-icon {
+  width: var(--trigger-icon-size, 15px);
+  height: var(--trigger-icon-size, 15px);
+  display: flex;
+  align-items: center;
+}
+.mega-menu-link .mega-menu-dropdown-icon svg{
+  fill: var(--navigationLinkColor);
+  stroke: var(--navigationLinkColor);
+  width:100%;
+  height:100%;
+  transition: transform 0.3s ease;
+  transform-origin: center center;
+}
+.wm-mega-menu-plugin:has(.mega-menu-dropdown-icon) {
+  --active-menu-icon-transform: rotate(180deg);
+}
+
 @keyframes wmMoveUpFadeIn {
   from {
     opacity: 0;
@@ -346,4 +365,12 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 /*Account Link*/
 .wm-mega-menu-plugin #accountFrame{
   z-index: 20002;
+}
+
+/*Hide Duplicate Dropdown Icons*/
+.header span.header-dropdown-icon{
+  display:none
+}
+.wm-mega-menu-plugin .header-nav-item:not(.header-nav-item--mega-menu) span.header-dropdown-icon{
+  display: flex;
 }
