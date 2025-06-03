@@ -21,6 +21,7 @@ class wmMegaMenu {
       triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>`,
+
       openOnClick: false,
       hooks: {
         beforeInit: [],
@@ -546,6 +547,68 @@ class wmMegaMenu {
 
         trigger.classList.add("mega-menu-link");
         trigger.closest(".header-nav-item")?.classList.add("header-nav-item--mega-menu");
+        if (this.settings.triggerIcon === 'squarespace' && document.querySelector('#header[data-current-styles]')) {
+          try {
+            const headerElement = document.querySelector('#header[data-current-styles]');
+            if (!headerElement?.dataset?.currentStyles) {
+              console.warn('Header element or currentStyles dataset not found');
+              return;
+            }
+
+            const headerSettings = headerElement.dataset.currentStyles;
+            let iconOptions;
+            
+            try {
+              const parsedSettings = JSON.parse(headerSettings);
+              iconOptions = parsedSettings?.iconOptions;
+            } catch (parseError) {
+              console.warn('Failed to parse header settings JSON:', parseError);
+              return;
+            }
+
+            const folderDropdownIcon = iconOptions?.desktopDropdownIconOptions?.folderDropdownIcon;
+            
+            if (typeof folderDropdownIcon === 'string' && folderDropdownIcon.length > 0) {
+              console.log(iconOptions?.desktopDropdownIconOptions);
+              const span = document.createElement('div');
+              span.classList.add('mega-menu-dropdown-icon');
+              const icon = document.createElement('svg');
+              icon.setAttribute('viewBox', '0 0 22 22');
+              
+              // Safely set stroke-linecap with validation
+              const endcapType = iconOptions?.desktopDropdownIconOptions?.endcapType;
+              const validEndcapTypes = ['butt', 'round', 'square'];
+              if (typeof endcapType === 'string' && validEndcapTypes.includes(endcapType)) {
+                icon.setAttribute('stroke-linecap', endcapType);
+              }
+              
+              // Always set stroke-linejoin (this is safe as it's a constant)
+              icon.setAttribute('stroke-linejoin', 'miter');
+              
+              // Safely set stroke-width with proper validation
+              const strokeWidth = iconOptions?.desktopDropdownIconOptions?.strokeWidth;
+              if (strokeWidth && 
+                  typeof strokeWidth.value === 'number' && 
+                  typeof strokeWidth.unit === 'string' &&
+                  strokeWidth.value > 0) {
+                icon.setAttribute('stroke-width', strokeWidth.value + strokeWidth.unit);
+              }
+              
+              const use = document.createElement('use');
+              use.setAttribute('href', "#" + folderDropdownIcon);
+              icon.classList.add('squarespace-icon');
+              
+              icon.appendChild(use);
+              span.appendChild(icon);
+              this.settings.triggerIcon = span.outerHTML;
+            } else {
+              console.warn('Invalid or missing folderDropdownIcon');
+            }
+          } catch (error) {
+            console.error('Error setting up Squarespace trigger icon:', error);
+            // Fallback to default icon behavior
+          }
+        } 
         this.settings.triggerIconDisplay ? trigger.insertAdjacentHTML("beforeend", this.settings.triggerIcon) : null;
       });
     });
