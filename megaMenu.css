@@ -374,3 +374,6 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 .wm-mega-menu-plugin .header-nav-item:not(.header-nav-item--mega-menu) span.header-dropdown-icon{
   display: flex;
 }
+#header .header-dropdown-icon ~ .header-dropdown-icon{
+  display: none !important;
+}
