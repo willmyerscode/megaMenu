@@ -355,12 +355,15 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 /**
 * With Tabs Plugin
 **/
-.wm-mega-menu .wm-tabs{
-  display:none;
+.wm-mega-menu:not(.open) .wm-tabs{
+  height: 0px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
-.wm-mega-menu.open .wm-tabs{
+/* .wm-mega-menu.open .wm-tabs{
   display:block;
-}
+} */
 
 /*Account Link*/
 .wm-mega-menu-plugin #accountFrame{
