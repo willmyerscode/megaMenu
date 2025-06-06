@@ -436,12 +436,13 @@ class wmMegaMenu {
       this.closeMenu();
     });
 
-    const closeTriggers = this.header.querySelectorAll(".header-inner a");
+    const closeTriggers = this.header.querySelectorAll(".header-inner a, .header-inner .header-nav-folder-content");
     let closeTimeout;
 
     closeTriggers.forEach(el => {
       if (!this.settings.openOnClick) {
         el.addEventListener("mouseenter", () => {
+          console.log("mouseenter", el);
           // Clear any existing timeout
           if (closeTimeout) {
             clearTimeout(closeTimeout);
@@ -569,8 +570,7 @@ class wmMegaMenu {
             const folderDropdownIcon = iconOptions?.desktopDropdownIconOptions?.folderDropdownIcon;
             
             if (typeof folderDropdownIcon === 'string' && folderDropdownIcon.length > 0) {
-              console.log(iconOptions?.desktopDropdownIconOptions);
-              const span = document.createElement('div');
+              const span = document.createElement('span');
               span.classList.add('mega-menu-dropdown-icon');
               const icon = document.createElement('svg');
               icon.setAttribute('viewBox', '0 0 22 22');
@@ -592,6 +592,16 @@ class wmMegaMenu {
                   typeof strokeWidth.unit === 'string' &&
                   strokeWidth.value > 0) {
                 icon.setAttribute('stroke-width', strokeWidth.value + strokeWidth.unit);
+              }
+
+              // Safely set stroke-width with proper validation
+              const iconSize = iconOptions?.desktopDropdownIconOptions?.size;
+              if (iconSize && 
+                  typeof iconSize.value === 'number' && 
+                  typeof iconSize.unit === 'string' &&
+                  iconSize.value > 0) {
+                span.style.setProperty('width', iconSize.value + iconSize.unit);
+                span.style.setProperty('height', iconSize.value + iconSize.unit);
               }
               
               const use = document.createElement('use');
