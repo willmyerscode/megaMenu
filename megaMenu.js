@@ -9,6 +9,7 @@ class wmMegaMenu {
       openAnimationDelay: 300,
       insetMenuWidthLimit: 0.04,
       closeAnimationDelay: 300,
+      closeMenuDelay: 150,
       activeAnimation: "fade",
       activeAnimationDelay: 300,
       closeOnScroll: true,
@@ -442,7 +443,6 @@ class wmMegaMenu {
     closeTriggers.forEach(el => {
       if (!this.settings.openOnClick) {
         el.addEventListener("mouseenter", () => {
-          console.log("mouseenter", el);
           // Clear any existing timeout
           if (closeTimeout) {
             clearTimeout(closeTimeout);
@@ -455,7 +455,7 @@ class wmMegaMenu {
               if (!isActiveTrigger) {
                 this.closeMenu();
               }
-            }, 150);
+            }, this.settings.closeMenuDelay || 150);
           }
         });
       }
@@ -1143,7 +1143,7 @@ class wmMegaMenu {
     window.addEventListener("resize", handleResize);
   }
   placeMegaMenusByScreenSize() {
-    if (this.isMobileMenuOpen) {
+    if (this.isMobileMenuOpen || document.body.classList.contains('header--menu-open')) {
       this.menus.forEach(menu => {
         if (!menu.keepDefaultMobileMenu) {
           menu.mobileFolder.append(menu.item);
