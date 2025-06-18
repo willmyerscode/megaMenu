@@ -19,6 +19,7 @@ class wmMegaMenu {
       activeMobileTriggerClass: "header-menu-nav-item--active",
       setTriggerNoFollow: false,
       triggerIconDisplay: true,
+      backButtonText: "Back",
       triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>`,
@@ -308,6 +309,7 @@ class wmMegaMenu {
     this.positionMenuWrapper();
   }
   buildMobileHTML() {
+    const self = this;
     this.menus.forEach(menu => {
       const newMobileTrigger = buildMobileTrigger(menu);
       menu.mobileFolder = buildMobileFolder(menu.referenceUrl);
@@ -341,7 +343,7 @@ class wmMegaMenu {
 
       // Create the content container
       const contentDiv = document.createElement("div");
-      contentDiv.className = "header-menu-nav-item-content";
+      contentDiv.className = "header-menu-nav-item-content header-menu-nav-item-content-folder";
 
       // Create and append the visually hidden span
       const hiddenSpan = document.createElement("span");
@@ -355,9 +357,9 @@ class wmMegaMenu {
       contentDiv.appendChild(nameSpan);
 
       // Create and append the chevron span
-      const chevronSpan = document.createElement("span");
-      chevronSpan.className = "chevron chevron--right";
-      contentDiv.appendChild(chevronSpan);
+      // const chevronSpan = document.createElement("span");
+      // chevronSpan.className = "chevron chevron--right";
+      // contentDiv.appendChild(chevronSpan);
 
       // Append the content div to the main anchor
       mobileLink.appendChild(contentDiv);
@@ -387,13 +389,14 @@ class wmMegaMenu {
       // Create the controls container
       const controlsContainer = document.createElement("div");
       controlsContainer.className = "header-menu-controls container header-menu-nav-item";
-
+        
       // Create the back button
-      const backButton = document.createElement("a");
-      backButton.className = "header-menu-controls-control header-menu-controls-control--active";
-      backButton.setAttribute("data-action", "back");
-      backButton.href = "/";
-      backButton.tabIndex = -1;
+      let backButton = document.querySelector('.header-menu-controls-control[data-action="back ff"]')?.cloneNode(true);
+      if (backButton) {
+        backButton = backButton.cloneNode(true);
+      } else {
+        backButton = createBackButton();
+      }
 
       backButton.addEventListener("click", e => {
         e.preventDefault();
@@ -406,22 +409,23 @@ class wmMegaMenu {
         folderToClose.classList.remove("header-menu-nav-folder--active");
       });
 
-      // Create and append the chevron span
-      // const chevronSpan = document.createElement("span");
-      // chevronSpan.className = "chevron chevron--left";
-      // backButton.appendChild(chevronSpan);
-
-      // Create and append the text span
-      const textSpan = document.createElement("span");
-      textSpan.textContent = "Back";
-      backButton.appendChild(textSpan);
-
       // Assemble the structure
       controlsContainer.appendChild(backButton);
       folderContent.appendChild(controlsContainer);
       folder.appendChild(folderContent);
 
       return folder;
+    }
+    function createBackButton(text) {
+      const backButton = document.createElement("a");
+      backButton.className = "header-menu-controls-control header-menu-controls-control--active";
+      backButton.setAttribute("data-action", "back");
+      backButton.href = "/";
+      backButton.tabIndex = -1;
+      const textSpan = document.createElement("span");
+      textSpan.textContent = self.settings.backButtonText;
+      backButton.appendChild(textSpan);
+      return backButton;
     }
   }
   addCloseTriggers() {
