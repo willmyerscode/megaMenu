@@ -138,7 +138,7 @@
 }
 
 .mega-menu-item .page-section:first-child {
-  padding-top: var(--header-bottom, 0px);
+  padding-top: var(--header-bottom, 0px) !important;
 }
 
 .wm-mega-menu-plugin .header-nav-item--mega-menu a.mega-menu-link {
