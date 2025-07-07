@@ -42,10 +42,10 @@ class wmMegaMenu {
   static get userSettings() {
     return window[wmMegaMenu.pluginTitle + "Settings"] || {};
   }
-  
+
   // Add static property to track if global click listener has been attached
   static globalClickListenerAttached = false;
-  
+
   constructor(els) {
     if (els[0].dataset.megaMenuLoadingState) {
       return;
@@ -104,7 +104,13 @@ class wmMegaMenu {
     this.headerCurrentStyles = JSON.parse(this.header.dataset.currentStyles);
     if (window.Squarespace) {
       wm$?.handleAddingMissingColorTheme();
-      await wm$?.reloadSquarespaceLifecycle([this.menu, this.header]);
+      if (document.readyState === "complete") {
+        wm$?.reloadSquarespaceLifecycle([this.menu, this.header]);
+      } else {
+        window.addEventListener("load", () => {
+          wm$?.reloadSquarespaceLifecycle([this.menu, this.header]);
+        });
+      }
     }
 
     this.activeMenu = this.menus[0];
@@ -280,11 +286,15 @@ class wmMegaMenu {
             link.classList.add("mega-menu-nav-item--active");
             // Add active class to parent desktop triggers
             menu.desktopTriggers.forEach(trigger => {
-              this.settings.addActiveTriggerClass ? trigger.parentElement.classList.add(this.settings.activeDesktopTriggerClass) : null;
+              this.settings.addActiveTriggerClass
+                ? trigger.parentElement.classList.add(this.settings.activeDesktopTriggerClass)
+                : null;
             });
             // Add active class to mobile trigger if it exists
             if (menu.mobileTrigger) {
-              this.settings.addActiveTriggerClass ? menu.mobileTrigger.classList.add(this.settings.activeMobileTriggerClass) : null;
+              this.settings.addActiveTriggerClass
+                ? menu.mobileTrigger.classList.add(this.settings.activeMobileTriggerClass)
+                : null;
             } else {
               // Store this state for when mobile trigger is created later
               menu.shouldAddMobileActiveClass = true;
@@ -368,7 +378,9 @@ class wmMegaMenu {
         e.stopPropagation();
 
         const rootFolder = mobileLink.closest('[data-folder="root"]');
-        const folderToOpen = document.querySelector(`.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`);
+        const folderToOpen = document.querySelector(
+          `.header-menu-nav-folder[data-folder="${mobileLink.dataset.folderId}"]`
+        );
 
         rootFolder.classList.add("header-menu-nav-folder--open");
         folderToOpen.classList.add("header-menu-nav-folder--active");
@@ -389,7 +401,7 @@ class wmMegaMenu {
       // Create the controls container
       const controlsContainer = document.createElement("div");
       controlsContainer.className = "header-menu-controls container header-menu-nav-item";
-        
+
       // Create the back button
       let backButton = document.querySelector('.header-menu-controls-control[data-action="back ff"]')?.cloneNode(true);
       if (backButton) {
@@ -552,77 +564,81 @@ class wmMegaMenu {
 
         trigger.classList.add("mega-menu-link");
         trigger.closest(".header-nav-item")?.classList.add("header-nav-item--mega-menu");
-        if (this.settings.triggerIcon === 'squarespace' && document.querySelector('#header[data-current-styles]')) {
+        if (this.settings.triggerIcon === "squarespace" && document.querySelector("#header[data-current-styles]")) {
           try {
-            const headerElement = document.querySelector('#header[data-current-styles]');
+            const headerElement = document.querySelector("#header[data-current-styles]");
             if (!headerElement?.dataset?.currentStyles) {
-              console.warn('Header element or currentStyles dataset not found');
+              console.warn("Header element or currentStyles dataset not found");
               return;
             }
 
             const headerSettings = headerElement.dataset.currentStyles;
             let iconOptions;
-            
+
             try {
               const parsedSettings = JSON.parse(headerSettings);
               iconOptions = parsedSettings?.iconOptions;
             } catch (parseError) {
-              console.warn('Failed to parse header settings JSON:', parseError);
+              console.warn("Failed to parse header settings JSON:", parseError);
               return;
             }
 
             const folderDropdownIcon = iconOptions?.desktopDropdownIconOptions?.folderDropdownIcon;
-            
-            if (typeof folderDropdownIcon === 'string' && folderDropdownIcon.length > 0) {
-              const span = document.createElement('span');
-              span.classList.add('mega-menu-dropdown-icon');
-              const icon = document.createElement('svg');
-              icon.setAttribute('viewBox', '0 0 22 22');
-              
+
+            if (typeof folderDropdownIcon === "string" && folderDropdownIcon.length > 0) {
+              const span = document.createElement("span");
+              span.classList.add("mega-menu-dropdown-icon");
+              const icon = document.createElement("svg");
+              icon.setAttribute("viewBox", "0 0 22 22");
+
               // Safely set stroke-linecap with validation
               const endcapType = iconOptions?.desktopDropdownIconOptions?.endcapType;
-              const validEndcapTypes = ['butt', 'round', 'square'];
-              if (typeof endcapType === 'string' && validEndcapTypes.includes(endcapType)) {
-                icon.setAttribute('stroke-linecap', endcapType);
+              const validEndcapTypes = ["butt", "round", "square"];
+              if (typeof endcapType === "string" && validEndcapTypes.includes(endcapType)) {
+                icon.setAttribute("stroke-linecap", endcapType);
               }
-              
+
               // Always set stroke-linejoin (this is safe as it's a constant)
-              icon.setAttribute('stroke-linejoin', 'miter');
-              
+              icon.setAttribute("stroke-linejoin", "miter");
+
               // Safely set stroke-width with proper validation
               const strokeWidth = iconOptions?.desktopDropdownIconOptions?.strokeWidth;
-              if (strokeWidth && 
-                  typeof strokeWidth.value === 'number' && 
-                  typeof strokeWidth.unit === 'string' &&
-                  strokeWidth.value > 0) {
-                icon.setAttribute('stroke-width', strokeWidth.value + strokeWidth.unit);
+              if (
+                strokeWidth &&
+                typeof strokeWidth.value === "number" &&
+                typeof strokeWidth.unit === "string" &&
+                strokeWidth.value > 0
+              ) {
+                icon.setAttribute("stroke-width", strokeWidth.value + strokeWidth.unit);
               }
 
               // Safely set stroke-width with proper validation
               const iconSize = iconOptions?.desktopDropdownIconOptions?.size;
-              if (iconSize && 
-                  typeof iconSize.value === 'number' && 
-                  typeof iconSize.unit === 'string' &&
-                  iconSize.value > 0) {
-                span.style.setProperty('width', iconSize.value + iconSize.unit);
-                span.style.setProperty('height', iconSize.value + iconSize.unit);
+              if (
+                iconSize &&
+                typeof iconSize.value === "number" &&
+                typeof iconSize.unit === "string" &&
+                iconSize.value > 0
+              ) {
+                span.style.setProperty("width", iconSize.value + iconSize.unit);
+                span.style.setProperty("height", iconSize.value + iconSize.unit);
               }
-              
-              const use = document.createElement('use');
-              use.setAttribute('href', "#" + folderDropdownIcon);
-              icon.classList.add('squarespace-icon');
-              
+
+              const use = document.createElement("use");
+              use.setAttribute("href", "#" + folderDropdownIcon);
+              icon.classList.add("squarespace-icon");
+
               icon.appendChild(use);
               span.appendChild(icon);
               this.settings.triggerIcon = span.outerHTML;
             } else {
-              console.warn('Invalid or missing folderDropdownIcon');
+              console.warn("Invalid or missing folderDropdownIcon");
             }
           } catch (error) {
-            console.error('Error setting up Squarespace trigger icon:', error);
+            console.error("Error setting up Squarespace trigger icon:", error);
             // Fallback to default icon behavior
           }
-        } 
+        }
         this.settings.triggerIconDisplay ? trigger.insertAdjacentHTML("beforeend", this.settings.triggerIcon) : null;
       });
     });
@@ -632,7 +648,7 @@ class wmMegaMenu {
     this.isAnimating = true;
 
     this.runHooks("beforeOpenMenu", menu);
-    wm$.emitEvent("wmMegaMenu:beforeOpenMenu", menu); 
+    wm$.emitEvent("wmMegaMenu:beforeOpenMenu", menu);
     if (this.isMenuOpen && this.activeMenu === menu) {
       this.isAnimating = false;
       return;
@@ -1102,7 +1118,10 @@ class wmMegaMenu {
         const overlap = windowLeftEdge - translateX;
         translateX = inset;
       }
-    } else if (this.headerCurrentStyles?.layout === "navCenter" || this.headerCurrentStyles?.layout === "brandingCenterNavCenter") {
+    } else if (
+      this.headerCurrentStyles?.layout === "navCenter" ||
+      this.headerCurrentStyles?.layout === "brandingCenterNavCenter"
+    ) {
       const triggerRect = activeTrigger.getBoundingClientRect();
       const triggerCenter = triggerRect.left + triggerRect.width / 2;
 
@@ -1147,7 +1166,7 @@ class wmMegaMenu {
     window.addEventListener("resize", handleResize);
   }
   placeMegaMenusByScreenSize() {
-    if (this.isMobileMenuOpen || document.body.classList.contains('header--menu-open')) {
+    if (this.isMobileMenuOpen || document.body.classList.contains("header--menu-open")) {
       this.menus.forEach(menu => {
         if (!menu.keepDefaultMobileMenu) {
           menu.mobileFolder.append(menu.item);
@@ -1178,7 +1197,7 @@ class wmMegaMenu {
       if (!this.isMenuOpen) return;
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          if (this.settings.closeOnScroll) {  
+          if (this.settings.closeOnScroll) {
             this.closeMenu();
           }
           ticking = false;
@@ -1199,7 +1218,9 @@ class wmMegaMenu {
         } else {
           this.isMobileMenuOpen = false;
           const rootFolder = document.querySelector('.header-menu-nav-list [data-folder="root"]');
-          const otherFolders = document.querySelectorAll('.header-menu-nav-list [data-folder]:not([data-folder="root"])');
+          const otherFolders = document.querySelectorAll(
+            '.header-menu-nav-list [data-folder]:not([data-folder="root"])'
+          );
           rootFolder.classList.remove("header-menu-nav-folder--open");
           otherFolders.forEach(folder => {
             folder.classList.remove("header-menu-nav-folder--active");
@@ -1295,7 +1316,9 @@ class wmMegaMenu {
     const init = () => {
       this.menus.forEach(menu => {
         const item = menu.item;
-        const focusableElements = item.querySelectorAll('a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select');
+        const focusableElements = item.querySelectorAll(
+          'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
+        );
         focusableElements.forEach(el => {
           el.setAttribute("tabindex", "-1");
         });
