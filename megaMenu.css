@@ -137,7 +137,7 @@
   transform: translateX(0px);
 }
 
-.mega-menu-item .page-section:first-child {
+.mega-menu-item > .page-section:first-child {
   padding-top: var(--header-bottom, 0px) !important;
 }
 
