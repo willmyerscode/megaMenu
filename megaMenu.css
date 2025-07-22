@@ -374,9 +374,14 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 .wm-mega-menu-plugin .header-nav-item:not(.header-nav-item--mega-menu) span.header-dropdown-icon{
   display: flex;
 }
+.header-nav-item--mega-menu:has(.mega-menu-dropdown-icon) .header-dropdown-icon {
+  display:none;
+}
+/*Hide duplicate dropdown icon*/
 #header .header-dropdown-icon ~ .header-dropdown-icon{
   display: none !important;
 }
+
 
 /*Hide dropdown flash w/ mega menu*/
 .header-nav-item--folder:has([href*="-wm-mega-"].header-nav-folder-title) .header-nav-folder-content{
