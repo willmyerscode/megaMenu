@@ -453,7 +453,7 @@ class wmMegaMenu {
       this.closeMenu();
     });
 
-    const closeTriggers = this.header.querySelectorAll(".header-inner a, .header-inner .header-nav-folder-content");
+    const closeTriggers = this.header.querySelectorAll(".header-inner a, .header-inner button, .header-inner .header-nav-folder-content");
     let closeTimeout;
 
     closeTriggers.forEach(el => {
