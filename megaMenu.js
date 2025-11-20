@@ -141,9 +141,14 @@ class wmMegaMenu {
   }
   async buildStructure() {
     const promises = Array.from(this.els).map(async (el, index) => {
-      const url = new URL(el.href);
-      const urlSlug = el.getAttribute("href");
-      let desktopTriggers = document.querySelectorAll(`#header .header-inner [href="${urlSlug}"]`),
+      // Support both <a href=""> and <button data-href="">
+      const urlSlug = el.getAttribute("href") || el.getAttribute("data-href");
+      const hrefValue = el.href || el.getAttribute("data-href");
+      const url = new URL(hrefValue, window.location.origin);
+      
+      let desktopTriggers = document.querySelectorAll(
+        `#header .header-inner a[href="${urlSlug}"], #header .header-inner button[data-href="${urlSlug}"]`
+      ),
         referenceUrl,
         sourceUrl,
         isDropdown = false,
@@ -161,13 +166,20 @@ class wmMegaMenu {
           referenceUrl = "/" + referenceUrl;
         }
         // Check if the href starts with # for anchor-only links
-        sourceUrl = urlSlug.startsWith("#") ? "#" : new URL(el.href).pathname;
+        sourceUrl = urlSlug.startsWith("#") ? "#" : url.pathname;
       }
 
       if (!desktopTriggers.length || !referenceUrl) return null;
 
-      const triggerText = desktopTriggers[0].innerText;
-      const mobileTriggerParent = document.querySelector(`#header .header-menu [href="${urlSlug}"]`).parentElement;
+      const triggerText = desktopTriggers[0].innerText || desktopTriggers[0].textContent;
+      const mobileTriggerParent = document.querySelector(
+        `#header .header-menu [href="${urlSlug}"], #header .header-menu [data-href="${urlSlug}"]`
+      )?.parentElement;
+      
+      if (!mobileTriggerParent) {
+        console.warn(`Mobile trigger parent not found for: ${urlSlug}`);
+        return null;
+      }
 
       try {
         const contentFrag = await wm$?.getFragment(referenceUrl);
@@ -224,9 +236,14 @@ class wmMegaMenu {
 
     this.menus.forEach(menu => {
       menu.desktopTriggers.forEach(el => {
+        const isButton = el.tagName === "BUTTON";
+        const hrefAttr = isButton ? "data-href" : "href";
+        
         if (menu.sourceUrl === "/") {
-          el.setAttribute("href", menu.referenceUrl);
-          el.setAttribute("rel", "nofollow");
+          el.setAttribute(hrefAttr, menu.referenceUrl);
+          if (!isButton) {
+            el.setAttribute("rel", "nofollow");
+          }
           el.addEventListener("click", e => {
             e.preventDefault();
             e.stopPropagation();
@@ -246,11 +263,11 @@ class wmMegaMenu {
             });
           }
 
-          // Add nofollow
-          if (this.settings.setTriggerNoFollow) {
+          // Add nofollow (only for <a> tags)
+          if (this.settings.setTriggerNoFollow && !isButton) {
             el.setAttribute("rel", "nofollow");
           }
-          el.setAttribute("href", menu.sourceUrl);
+          el.setAttribute(hrefAttr, menu.sourceUrl);
         }
       });
 
@@ -1339,8 +1356,12 @@ class wmMegaMenu {
   function initMegaMenu() {
     // const els = document.querySelectorAll("[data-mega-menu]");
     const els = document.querySelectorAll(
-      `.header-display-desktop .header-nav-list a[href*='#wm-mega']:not([data-mega-menu-loading-state]), .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-']:not([data-mega-menu-loading-state]),
-    [data-wm-plugin="secondary-nav"] .secondary-links a[href*='#wm-mega']:not([data-mega-menu-loading-state])`
+      `.header-display-desktop .header-nav-list a[href*='#wm-mega']:not([data-mega-menu-loading-state]), 
+      .header-display-desktop .header-nav-list button[data-href*='#wm-mega']:not([data-mega-menu-loading-state]),
+      .header-display-desktop .header-nav-list .header-nav-item--folder a[href*='-wm-mega-']:not([data-mega-menu-loading-state]),
+      .header-display-desktop .header-nav-list .header-nav-item--folder button[data-href*='-wm-mega-']:not([data-mega-menu-loading-state]),
+      [data-wm-plugin="secondary-nav"] .secondary-links a[href*='#wm-mega']:not([data-mega-menu-loading-state]),
+      [data-wm-plugin="secondary-nav"] .secondary-links button[data-href*='#wm-mega']:not([data-mega-menu-loading-state])`
     );
     if (!els.length) return;
     new wmMegaMenu(els);
