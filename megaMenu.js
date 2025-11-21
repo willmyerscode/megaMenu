@@ -25,6 +25,8 @@ class wmMegaMenu {
       </svg>`,
 
       openOnClick: false,
+      positionBelow: "#header", // CSS selector for element to position under, or "trigger" for dynamic positioning under the trigger
+      positionOffset: "0px", // Offset from the bottom of the position element (e.g., "10px", "1rem", "0px")
       hooks: {
         beforeInit: [],
         afterInit: [
@@ -135,8 +137,47 @@ class wmMegaMenu {
     this.addClickToCloseEventListener();
   }
   updateHeaderBottom() {
-    const headerRect = this.header.getBoundingClientRect();
-    this.headerBottom = `${headerRect.bottom}px`;
+    let positionElement;
+    
+    // Handle "trigger" option for dynamic positioning
+    if (this.settings.positionBelow === "trigger" && this.activeMenu?.desktopTriggers?.[0]) {
+      positionElement = this.activeMenu.desktopTriggers[0];
+    } else if (typeof this.settings.positionBelow === "string" && this.settings.positionBelow !== "trigger") {
+      // Use custom selector
+      positionElement = document.querySelector(this.settings.positionBelow);
+      if (!positionElement) {
+        console.warn(`wmMegaMenu: Position element "${this.settings.positionBelow}" not found, falling back to #header`);
+        positionElement = this.header;
+      }
+    } else {
+      // Default to header
+      positionElement = this.header;
+    }
+    
+    const elementRect = positionElement.getBoundingClientRect();
+    
+    // Parse and apply the offset
+    let offsetValue = 0;
+    if (this.settings.positionOffset && this.settings.positionOffset !== "0px") {
+      // For viewport units, pixel units, rem, em, etc., we can use calc() in CSS
+      // But we need to handle the calculation here for the JS positioning
+      const offset = this.settings.positionOffset;
+      if (offset.endsWith("px")) {
+        offsetValue = parseFloat(offset);
+      } else if (offset.endsWith("rem")) {
+        const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        offsetValue = parseFloat(offset) * rootFontSize;
+      } else if (offset.endsWith("em")) {
+        const fontSize = parseFloat(getComputedStyle(this.menu).fontSize);
+        offsetValue = parseFloat(offset) * fontSize;
+      } else if (offset.endsWith("vh")) {
+        offsetValue = (parseFloat(offset) / 100) * window.innerHeight;
+      } else if (offset.endsWith("vw")) {
+        offsetValue = (parseFloat(offset) / 100) * window.innerWidth;
+      }
+    }
+    
+    this.headerBottom = `${elementRect.bottom + offsetValue}px`;
     this.menu.style.setProperty("--header-bottom", this.headerBottom);
   }
   async buildStructure() {
@@ -332,7 +373,22 @@ class wmMegaMenu {
     megaMenuDiv.appendChild(arrow);
     container.appendChild(megaMenuDiv);
 
-    this.header.appendChild(container);
+    // Determine where to append the menu based on positionBelow setting
+    let appendTarget;
+    if (this.settings.positionBelow === "trigger") {
+      // For trigger positioning, still append to header but positioning will be dynamic
+      appendTarget = this.header;
+    } else if (typeof this.settings.positionBelow === "string" && this.settings.positionBelow !== "#header") {
+      appendTarget = document.querySelector(this.settings.positionBelow);
+      if (!appendTarget) {
+        console.warn(`wmMegaMenu: Position element "${this.settings.positionBelow}" not found, falling back to #header`);
+        appendTarget = this.header;
+      }
+    } else {
+      appendTarget = this.header;
+    }
+    
+    appendTarget.appendChild(container);
     this.positionMenuWrapper();
   }
   buildMobileHTML() {
