@@ -372,23 +372,9 @@ class wmMegaMenu {
     megaMenuDiv.appendChild(wrapperDiv);
     megaMenuDiv.appendChild(arrow);
     container.appendChild(megaMenuDiv);
-
-    // Determine where to append the menu based on positionBelow setting
-    let appendTarget;
-    if (this.settings.positionBelow === "trigger") {
-      // For trigger positioning, still append to header but positioning will be dynamic
-      appendTarget = this.header;
-    } else if (typeof this.settings.positionBelow === "string" && this.settings.positionBelow !== "#header") {
-      appendTarget = document.querySelector(this.settings.positionBelow);
-      if (!appendTarget) {
-        console.warn(`wmMegaMenu: Position element "${this.settings.positionBelow}" not found, falling back to #header`);
-        appendTarget = this.header;
-      }
-    } else {
-      appendTarget = this.header;
-    }
     
-    appendTarget.appendChild(container);
+    this.header.appendChild(container);
+
     this.positionMenuWrapper();
   }
   buildMobileHTML() {
