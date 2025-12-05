@@ -181,6 +181,9 @@ class wmMegaMenu {
     this.menu.style.setProperty("--header-bottom", this.headerBottom);
   }
   async buildStructure() {
+    const isInEditor = window.self !== window.top;
+    const currentPath = window.location.pathname;
+
     const promises = Array.from(this.els).map(async (el, index) => {
       // Support both <a href=""> and <button data-href="">
       const urlSlug = el.getAttribute("href") || el.getAttribute("data-href");
@@ -222,6 +225,29 @@ class wmMegaMenu {
         return null;
       }
 
+      // Check if we're on the same page as this mega menu's source content
+      const isOnSourcePage = isInEditor && currentPath === referenceUrl;
+
+      if (isOnSourcePage) {
+        // Create a placeholder message instead of fetching content
+        const placeholderFrag = this.createEditorPlaceholder(referenceUrl);
+        const colorTheme = this.defaultHeaderColorTheme || "white";
+        return {
+          order: index + 1,
+          triggerText,
+          desktopTriggers,
+          mobileTriggerParent,
+          urlSlug,
+          sourceUrl,
+          referenceUrl,
+          contentFrag: placeholderFrag,
+          colorTheme,
+          keepDefaultMobileMenu,
+          isDropdown,
+          isEditorPlaceholder: true,
+        };
+      }
+
       try {
         const contentFrag = await wm$?.getFragment(referenceUrl);
         const colorTheme = contentFrag.querySelector(".page-section").dataset.sectionTheme;
@@ -246,6 +272,28 @@ class wmMegaMenu {
 
     this.menus = (await Promise.all(promises)).filter(Boolean);
     this.activeMenu = this.menus[0];
+  }
+  createEditorPlaceholder(referenceUrl) {
+    const frag = document.createDocumentFragment();
+    const section = document.createElement("section");
+    section.className = "page-section mega-menu-editor-placeholder";
+    section.dataset.sectionTheme = this.defaultHeaderColorTheme || "white";
+    
+    const wrapper = document.createElement("div");
+    wrapper.className = "mega-menu-placeholder-content";
+    const homeUrl = window.location.origin + "/";
+    wrapper.innerHTML = `
+      <div class="mega-menu-placeholder-message">
+        <h3>Mega Menu Preview Disabled</h3>
+        <p>This mega menu pulls content from the page you're currently editing (<code>${referenceUrl}</code>).</p>
+        <p>To prevent editing conflicts, the preview is disabled on this page.</p>
+        <p><strong>To test your mega menu:</strong></p>
+        <a href="${homeUrl}?noredirect" target="_blank" class="mega-menu-placeholder-link">Open Home Page in New Tab ↗</a>
+      </div>
+    `;
+    section.appendChild(wrapper);
+    frag.appendChild(section);
+    return frag;
   }
   buildDesktopHTML() {
     document.body.classList.add("wm-mega-menu-plugin");
