@@ -557,6 +557,19 @@ class wmMegaMenu {
         return;
       }
 
+      // Prevent closing when interacting with form elements in Chrome
+      // This handles autofill dropdowns and file picker dialogs which cause
+      // mouseleave events with null relatedTarget while keeping focus in the menu
+      if (!e.relatedTarget) {
+        const activeElement = document.activeElement;
+        if (activeElement && this.menuWrapper.contains(activeElement)) {
+          const isFormElement = activeElement.matches('input, textarea, select, [contenteditable="true"]');
+          if (isFormElement) {
+            return;
+          }
+        }
+      }
+
       this.closeMenu();
     });
 
