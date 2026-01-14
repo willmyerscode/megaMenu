@@ -209,8 +209,18 @@ class wmMegaMenu {
         if (!referenceUrl.startsWith("/")) {
           referenceUrl = "/" + referenceUrl;
         }
-        // Check if the href starts with # for anchor-only links
-        sourceUrl = urlSlug.startsWith("#") ? "#" : url.pathname;
+        // Extract the URL before #wm-mega as the source/clickthrough URL
+        const hashIndex = urlSlug.indexOf("#wm-mega");
+        if (hashIndex === 0) {
+          // Anchor-only link (e.g., "#wm-mega=/menu")
+          sourceUrl = "#";
+        } else if (hashIndex > 0) {
+          // There's content before #wm-mega (e.g., "https://example.com#wm-mega=/menu")
+          sourceUrl = urlSlug.substring(0, hashIndex);
+        } else {
+          // Fallback
+          sourceUrl = url.pathname;
+        }
       }
 
       if (!desktopTriggers.length || !referenceUrl) return null;
