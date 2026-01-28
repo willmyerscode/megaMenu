@@ -4,6 +4,7 @@ class wmMegaMenu {
   }
   static get defaultSettings() {
     return {
+      showOnMobile: true, // Set to false to disable mobile menu processing
       layout: "full-width", // header-adapt or folder
       openAnimation: "slide", // or fade, slide, swing
       openAnimationDelay: 300,
@@ -98,7 +99,9 @@ class wmMegaMenu {
 
     await this.buildStructure();
     this.buildDesktopHTML();
-    this.buildMobileHTML();
+    if (this.settings.showOnMobile) {
+      this.buildMobileHTML();
+    }
     this.setSizing();
     this.bindEvents();
     this.isHamburgerMenuOpen = false;
@@ -128,8 +131,10 @@ class wmMegaMenu {
     this.addEditModeObserver();
     this.addOpenTriggers();
     this.addCloseTriggers();
-    this.addMobileOpenTriggers();
-    this.addMobileBackButtonClick();
+    if (this.settings.showOnMobile) {
+      this.addMobileOpenTriggers();
+      this.addMobileBackButtonClick();
+    }
     this.addResizeEventListener();
     this.addScrollEventListener();
     this.addBurgerClickEventListener();
@@ -614,8 +619,8 @@ class wmMegaMenu {
       });
     });
 
-    // Only attach global click listener once
-    if (!wmMegaMenu.globalClickListenerAttached) {
+    // Only attach global click listener once (and only if mobile menu is enabled)
+    if (!wmMegaMenu.globalClickListenerAttached && this.settings.showOnMobile) {
       document.addEventListener("click", e => {
         if (e.target.closest(".mobile-mega-menu-folder a[href]")) {
           const menuTrigger = document.querySelector("button.header-burger-btn.burger--active");
@@ -1296,7 +1301,8 @@ class wmMegaMenu {
     window.addEventListener("resize", handleResize);
   }
   placeMegaMenusByScreenSize() {
-    if (this.isMobileMenuOpen || document.body.classList.contains("header--menu-open")) {
+    // Only move items to mobile folders if showOnMobile is enabled
+    if (this.settings.showOnMobile && (this.isMobileMenuOpen || document.body.classList.contains("header--menu-open"))) {
       this.menus.forEach(menu => {
         if (!menu.keepDefaultMobileMenu) {
           menu.mobileFolder.append(menu.item);
@@ -1338,6 +1344,9 @@ class wmMegaMenu {
     });
   }
   addBurgerClickEventListener() {
+    // Skip burger handling entirely if mobile menu processing is disabled
+    if (!this.settings.showOnMobile) return;
+
     const burgers = this.header.querySelectorAll(".header-burger-btn");
     const handleClick = e => {
       this.revertColorTheme();
