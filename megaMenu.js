@@ -101,6 +101,8 @@ class wmMegaMenu {
     this.buildDesktopHTML();
     if (this.settings.showOnMobile) {
       this.buildMobileHTML();
+    } else {
+      this.cleanMobileURLs();
     }
     this.setSizing();
     this.bindEvents();
@@ -561,6 +563,30 @@ class wmMegaMenu {
       backButton.appendChild(textSpan);
       return backButton;
     }
+  }
+  cleanMobileURLs() {
+    const mobileMenuContainer =
+      this.header.querySelector(".header-menu.header-menu--folder-list") || this.mobileHeader;
+    if (!mobileMenuContainer) return;
+
+    const mobileLinks = mobileMenuContainer.querySelectorAll(
+      'a[href*="#wm-mega"], button[data-href*="#wm-mega"]'
+    );
+
+    mobileLinks.forEach(link => {
+      const isButton = link.tagName === "BUTTON";
+      const hrefAttr = isButton ? "data-href" : "href";
+      const urlSlug = link.getAttribute(hrefAttr);
+
+      const matchingMenu = this.menus.find(m => m.urlSlug === urlSlug);
+      if (matchingMenu) {
+        link.setAttribute(hrefAttr, matchingMenu.sourceUrl);
+      } else {
+        // Fallback: strip everything from #wm-mega onward
+        const hashIndex = urlSlug.indexOf("#wm-mega");
+        link.setAttribute(hrefAttr, hashIndex > 0 ? urlSlug.substring(0, hashIndex) : "#");
+      }
+    });
   }
   addCloseTriggers() {
     this.menuWrapper.addEventListener("mouseleave", e => {
