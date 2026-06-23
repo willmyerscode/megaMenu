@@ -435,7 +435,7 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
      full-width layout: panel starts at viewport top — overridden below. */
   inset-block-start: var(--mega-menu-close-offset, 16px);
   inset-inline-end: var(--mega-menu-close-offset, 16px);
-  z-index: 2;
+  z-index: 9;
   width: fit-content;
   height: auto;
   clip: auto;
