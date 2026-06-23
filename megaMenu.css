@@ -16,6 +16,12 @@
   --background-overlay-blur: 10px;
 
   --mega-menu-arrow-color: var(--navigationLinkColor);
+
+  --mega-menu-close-bg: var(--navigationLinkColor, currentColor);
+  --mega-menu-close-color: var(--siteBackgroundColor, #fff);
+  --mega-menu-close-radius: 4px;
+  --mega-menu-close-padding: 10px 20px;
+  --mega-menu-close-offset: 16px;
 }
 
 .wm-mega-menu {
@@ -390,6 +396,65 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 /*Hide dropdown flash w/ mega menu*/
 .header-nav-item--folder:has([href*="-wm-mega-"].header-nav-folder-title) .header-nav-folder-content{
   display:none;
+}
+
+/*Accessible Close Control*/
+/* Default: in the DOM and tab order, but visually hidden until focused
+   (skip-link pattern) so existing site designs are untouched for mouse users. */
+.wm-mega-menu-close {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Anchor the absolutely-positioned close button to each individual panel
+   (not the translated .mega-menu-absolute strip, which would land off-screen). */
+.wm-mega-menu .mega-menu-item {
+  position: relative;
+}
+
+/* Becomes a visible, clearly-styled button pinned to the panel's top-right when a
+   keyboard user focuses it, or always when closeButtonAlwaysVisible is enabled.
+   Uses logical properties so RTL sites get the top-left automatically. */
+.wm-mega-menu-close:focus,
+.wm-mega-menu-close:focus-visible,
+.wm-mega-menu-close--always-visible {
+  position: absolute;
+  inset-block-start: var(--mega-menu-close-offset, 16px);
+  inset-inline-end: var(--mega-menu-close-offset, 16px);
+  z-index: 2;
+  width: fit-content;
+  height: auto;
+  clip: auto;
+  clip-path: none;
+  overflow: visible;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--mega-menu-close-padding);
+  line-height: 1;
+  color: var(--mega-menu-close-color);
+  background: var(--mega-menu-close-bg);
+  border-radius: var(--mega-menu-close-radius);
+  outline-offset: 2px;
+}
+
+/* In the mobile folder view the native "Back" control already closes the menu,
+   so the desktop close button is suppressed there. */
+.header-menu-nav-folder .wm-mega-menu-close {
+  display: none !important;
 }
 
 /*Editor Placeholder*/
