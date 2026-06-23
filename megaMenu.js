@@ -21,6 +21,15 @@ class wmMegaMenu {
       setTriggerNoFollow: false,
       triggerIconDisplay: true,
       backButtonText: "Back",
+
+      // Accessibility
+      enhanceTriggerA11y: true, // adds role/aria-haspopup/aria-controls + keeps aria-expanded in sync
+      triggerLabelSuffix: "menu", // accessible-name suffix, e.g. "Plan Your Visit menu" — "" keeps raw text; localize per site
+      closeButtonEnabled: true, // inject a focusable close control at the end of each menu
+      closeButtonText: "Close", // builds "Close {trigger} {suffix}"
+      closeButtonAlwaysVisible: false, // false = visible on focus (skip-link style); true = always shown
+      returnFocusOnClose: true, // keyboard/close-button dismissals return focus to the opening trigger
+
       triggerIcon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>`,
@@ -70,6 +79,7 @@ class wmMegaMenu {
     this.isMenuOpen = false;
     this.isMobileMenuOpen = false;
     this.menuTriggerCurrentlyHovered = null;
+    this.activeTrigger = null;
 
     this.headerBottom = 0;
     this.header = document.querySelector("#header");
@@ -429,6 +439,25 @@ class wmMegaMenu {
         // Links with unparseable hrefs (like tel:, mailto:) will be skipped
       });
 
+      // Accessible close control — the last focusable element in each menu.
+      // Built before handleAccessibility().init() runs so it's automatically
+      // collected into focusableElements and the focus trap.
+      if (this.settings.closeButtonEnabled) {
+        const closeButton = document.createElement("button");
+        closeButton.type = "button";
+        closeButton.className = "wm-mega-menu-close";
+        if (this.settings.closeButtonAlwaysVisible) {
+          closeButton.classList.add("wm-mega-menu-close--always-visible");
+        }
+        // e.g. "Close Plan Your Visit menu" — visible text doubles as the accessible name
+        closeButton.textContent = [this.settings.closeButtonText, menu.triggerText, this.settings.triggerLabelSuffix]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        closeButton.addEventListener("click", () => this.closeMenu({ returnFocus: true }));
+        itemDiv.appendChild(closeButton);
+      }
+
       absoluteMenu.appendChild(itemDiv);
       menu.item = itemDiv;
     });
@@ -702,9 +731,10 @@ class wmMegaMenu {
         if (this.settings.openOnClick) {
           trigger.addEventListener("click", e => {
             e.preventDefault();
+            this.activeTrigger = trigger;
 
             if (Array.from(this.activeMenu.desktopTriggers).some(t => t === trigger) && this.isMenuOpen) {
-              this.closeMenu();
+              this.closeMenu({ returnFocus: true });
             } else {
               this.openMenu(menu);
             }
@@ -712,6 +742,7 @@ class wmMegaMenu {
         } else {
           trigger.addEventListener("mouseenter", () => {
             this.menuTriggerCurrentlyHovered = menu;
+            this.activeTrigger = trigger;
             openTimeout = setTimeout(() => {
               this.openMenu(menu);
             }, 80);
@@ -804,6 +835,22 @@ class wmMegaMenu {
       });
     });
   }
+  setMenuExpanded(menu, expanded) {
+    // Single source of truth for a menu's expanded/collapsed accessibility state.
+    // Called from every open/close path so aria-expanded and the tab order never
+    // drift out of sync with what's actually visible on screen.
+    if (!menu) return;
+    if (this.settings.enhanceTriggerA11y) {
+      menu.desktopTriggers.forEach(trigger => {
+        trigger.setAttribute("aria-expanded", expanded ? "true" : "false");
+      });
+    }
+    if (menu.focusableElements) {
+      menu.focusableElements.forEach(el => {
+        expanded ? el.removeAttribute("tabindex") : el.setAttribute("tabindex", "-1");
+      });
+    }
+  }
   openMenu(menu) {
     if (this.isAnimating) return;
     this.isAnimating = true;
@@ -827,10 +874,13 @@ class wmMegaMenu {
 
     this.handleArrowAnimation("move");
 
-    // Update ARIA attributes
-    menu.desktopTriggers.forEach(trigger => {
-      trigger.setAttribute("aria-expanded", "true");
+    // Collapse every other menu and expand the active one. Centralizing here keeps
+    // aria-expanded + tab order correct for every open path (hover, click, keyboard)
+    // and fixes stale "true" state when switching directly between menus.
+    this.menus.forEach(m => {
+      if (m !== menu) this.setMenuExpanded(m, false);
     });
+    this.setMenuExpanded(menu, true);
 
     // Start the opening animation using Web Animations API
     if (this.isMenuOpen) {
@@ -887,7 +937,7 @@ class wmMegaMenu {
       }
     });
   }
-  closeMenu() {
+  closeMenu({ returnFocus = false } = {}) {
     if (this.isAnimating) return;
     this.isAnimating = true;
 
@@ -896,6 +946,14 @@ class wmMegaMenu {
     if (!this.isMenuOpen) {
       this.isAnimating = false;
       return;
+    }
+
+    // Resolve which trigger to send focus back to. Prefer the trigger that opened
+    // this menu, but only if it actually belongs to the menu being closed.
+    let triggerToFocus = this.activeTrigger;
+    const activeTriggers = this.activeMenu?.desktopTriggers;
+    if (!triggerToFocus || !activeTriggers || !Array.from(activeTriggers).includes(triggerToFocus)) {
+      triggerToFocus = activeTriggers?.[0];
     }
 
     // Start the closing animation using Web Animations API
@@ -924,6 +982,16 @@ class wmMegaMenu {
         menu.desktopTriggers.forEach(trigger => trigger.parentElement.classList.remove("mega-menu--active"));
         menu.item.classList.remove("active");
       });
+
+      // Reset aria-expanded to false and pull hidden links back out of the tab order
+      // on EVERY close path (hover-out, scroll, outside-click, keyboard, close button).
+      this.menus.forEach(menu => this.setMenuExpanded(menu, false));
+
+      // Return focus to the opening trigger for keyboard / close-button dismissals only,
+      // so a mouse-driven close (hover-out, scroll) never yanks focus around.
+      if (returnFocus && this.settings.returnFocusOnClose && triggerToFocus) {
+        triggerToFocus.focus();
+      }
 
       this.runHooks("afterCloseMenu");
     };
@@ -1133,6 +1201,9 @@ class wmMegaMenu {
 
     // const height = this.activeMenu.height;
     let height = Array.from(this.activeMenu.item.children).reduce((total, child) => {
+      // The close button is absolutely positioned (out of flow) — don't let its
+      // offsetHeight inflate the panel height.
+      if (child.classList.contains("wm-mega-menu-close")) return total;
       return total + child.offsetHeight;
     }, 0);
 
@@ -1207,6 +1278,8 @@ class wmMegaMenu {
     let absoluteWidth = 0;
     this.menus.forEach(menu => {
       const height = Array.from(menu.item.children).reduce((total, child) => {
+        // Skip the absolutely-positioned close button so it doesn't inflate height.
+        if (child.classList.contains("wm-mega-menu-close")) return total;
         return total + child.offsetHeight;
       }, 0);
       menu.height = height;
@@ -1444,42 +1517,51 @@ class wmMegaMenu {
 
     const addKeyboardOpenAndClosedNavigation = () => {
       window.addEventListener("keydown", e => {
-        if (e.key === "Escape") {
-          this.closeMenu();
-          this.activeMenu.desktopTriggers[0].focus();
-          this.activeMenu.focusableElements.forEach(el => {
-            el.setAttribute("tabindex", "-1");
-          });
+        if (e.key === "Escape" && this.isMenuOpen) {
+          // closeMenu now handles aria-expanded, tab order, and focus return.
+          this.closeMenu({ returnFocus: true });
         }
       });
 
-      // Add keyboard support
+      // Keyboard support on the top-level triggers
       this.menus.forEach(menu => {
+        // On a link that genuinely navigates, let Enter follow the link; only
+        // Space/ArrowDown operate the menu. Pure toggles respond to all three.
+        const navigates = menu.sourceUrl !== "/" && this.settings.allowTriggerClickthrough;
+
         menu.desktopTriggers.forEach(trigger => {
           trigger.addEventListener("keydown", e => {
-            if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
-              if (this.isMenuOpen) {
-                this.closeMenu();
-                return;
-              }
+            const isActivate = e.key === "Enter" || e.key === " ";
+            const isOpenKey = e.key === "ArrowDown";
+            if (!isActivate && !isOpenKey) return;
+            if (navigates && e.key === "Enter") return; // let the link navigate
+
+            // Space must never scroll the page when operating the control.
+            if (e.key === " ") e.preventDefault();
+
+            // If this menu is already the open one, toggle it closed.
+            if (this.isMenuOpen && this.activeMenu === menu) {
               e.preventDefault();
-              this.lastFocus = document.activeElement;
-              this.menu.setAttribute("aria-hidden", false);
-              this.openMenu(menu);
-              window.setTimeout(() => {
-                if (menu.firstFocusableElement) {
-                  trapFocus(menu);
-                  menu.firstFocusableElement.focus();
-                }
-              }, 300);
+              this.activeTrigger = trigger;
+              this.closeMenu({ returnFocus: true });
+              return;
             }
+
+            e.preventDefault();
+            this.activeTrigger = trigger;
+            this.openMenu(menu);
+            window.setTimeout(() => {
+              trapFocus(menu);
+              const focusables = Array.from(menu.focusableElements || []).filter(isElementFocusable);
+              if (focusables[0]) focusables[0].focus();
+            }, this.settings.openAnimationDelay);
           });
         });
       });
     };
 
     const init = () => {
-      this.menus.forEach(menu => {
+      this.menus.forEach((menu, index) => {
         const item = menu.item;
         const focusableElements = item.querySelectorAll(
           'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
@@ -1489,6 +1571,46 @@ class wmMegaMenu {
         });
         menu.focusableElements = focusableElements;
         menu.firstFocusableElement = focusableElements[0];
+
+        if (!this.settings.enhanceTriggerA11y) return;
+
+        // Accessible name derived from the trigger text so it generalizes across
+        // every site/language: "Plan Your Visit" + suffix -> "Plan Your Visit menu".
+        const accessibleName = [menu.triggerText, this.settings.triggerLabelSuffix]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        // Give the panel an identity + name so triggers can point at it and screen
+        // reader users know which menu they've entered. NOT role="menu" — a mega menu
+        // holds rich content, so it's a labelled region, not an arrow-key menu.
+        const regionId = `wm-mega-menu-region-${index}`;
+        item.id = regionId;
+        item.setAttribute("role", "group");
+        if (accessibleName) item.setAttribute("aria-label", accessibleName);
+
+        // A trigger is a pure toggle (button-like) only when clicking it does NOT navigate.
+        const navigates = menu.sourceUrl !== "/" && this.settings.allowTriggerClickthrough;
+
+        menu.desktopTriggers.forEach(trigger => {
+          trigger.setAttribute("aria-expanded", "false"); // initialized collapsed
+          trigger.setAttribute("aria-controls", regionId);
+          if (navigates) {
+            trigger.setAttribute("aria-haspopup", "true"); // a link that also opens a popup
+          } else {
+            trigger.setAttribute("role", "button"); // role matches behavior
+          }
+          // Only override the name when we're adding a suffix; appending to the visible
+          // text keeps it WCAG 2.5.3 "Label in Name" compliant.
+          if (this.settings.triggerLabelSuffix && accessibleName) {
+            trigger.setAttribute("aria-label", accessibleName);
+          }
+          // Hide the decorative dropdown icon(s) from assistive tech.
+          trigger.querySelectorAll("svg, .mega-menu-dropdown-icon").forEach(icon => {
+            icon.setAttribute("aria-hidden", "true");
+            icon.setAttribute("focusable", "false");
+          });
+        });
       });
     };
 
