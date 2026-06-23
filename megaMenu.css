@@ -431,6 +431,8 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
 .wm-mega-menu-close:focus-visible,
 .wm-mega-menu-close--always-visible {
   position: absolute;
+  /* inset layout: panel already sits below the header, so just the gap.
+     full-width layout: panel starts at viewport top — overridden below. */
   inset-block-start: var(--mega-menu-close-offset, 16px);
   inset-inline-end: var(--mega-menu-close-offset, 16px);
   z-index: 2;
@@ -449,6 +451,14 @@ body.wm-mega-menu--open .wm-mega-menu .sqs-block-summary-v2 .summary-item {
   background: var(--mega-menu-close-bg);
   border-radius: var(--mega-menu-close-radius);
   outline-offset: 2px;
+}
+
+/* Full-width panels start at the viewport top (content is pushed down by the
+   header height), so drop the button below the header to match the content. */
+.wm-mega-menu[data-layout="full-width"] .wm-mega-menu-close:focus,
+.wm-mega-menu[data-layout="full-width"] .wm-mega-menu-close:focus-visible,
+.wm-mega-menu[data-layout="full-width"] .wm-mega-menu-close--always-visible {
+  inset-block-start: calc(var(--header-bottom, 0px) + var(--mega-menu-close-offset, 16px));
 }
 
 /* In the mobile folder view the native "Back" control already closes the menu,
