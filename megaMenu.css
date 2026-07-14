@@ -211,7 +211,10 @@
   z-index: 99;
   animation: wmFadeOut 0.3s ease-out forwards;
 }
-.mega-menu-page-overlay + #sections {
+/* #sections = legacy standalone-page container; #page-regions = new (July 2026) SQSP DOM.
+   Match both so the overlay stacking works before/after the rollout. */
+.mega-menu-page-overlay + #sections,
+.mega-menu-page-overlay + #page-regions {
   z-index: 1;
 }
 .wm-mega-menu--open .mega-menu-page-overlay {
