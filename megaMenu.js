@@ -131,7 +131,7 @@ class wmMegaMenu {
     }
 
     this.activeMenu = this.menus[0];
-    this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
+    this.menu.dataset.sectionTheme = this.getMenuColorTheme(this.activeMenu);
     this.accessibility = this.handleAccessibility();
     this.accessibility.init();
     this.accessibility.addKeyboardOpenAndClosedNavigation();
@@ -917,7 +917,7 @@ class wmMegaMenu {
     };
   }
   showActiveMenu() {
-    this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
+    this.menu.dataset.sectionTheme = this.getMenuColorTheme(this.activeMenu);
     if (this.settings.layout === "inset") {
       this.handleInsetMenuPositioning();
     }
@@ -1128,23 +1128,38 @@ class wmMegaMenu {
     const menuZIndex = Math.max(0, headerZIndex - 1);
     this.menu.style.setProperty("--z-index", menuZIndex);
   }
+  // Read live rather than cached so plugins that re-theme the page (e.g. Dark Mode)
+  // are respected. The menu's own section theme can change after load, and other
+  // plugins can publish the header's resting themes via data-wm-base-theme and
+  // data-wm-base-overlay-theme on #header.
+  getMenuColorTheme(menu) {
+    return menu.item?.querySelector(".page-section")?.dataset.sectionTheme || menu.colorTheme;
+  }
+  getHeaderBaseTheme() {
+    return this.header.dataset.wmBaseTheme || this.defaultHeaderColorTheme;
+  }
+  getOverlayBaseTheme() {
+    return this.header.dataset.wmBaseOverlayTheme || this.mobileMenuOverlayTheme;
+  }
   matchColorTheme() {
-    this.menu.dataset.sectionTheme = this.activeMenu.colorTheme;
+    const colorTheme = this.getMenuColorTheme(this.activeMenu);
+    this.menu.dataset.sectionTheme = colorTheme;
     if (this.settings.layout === "inset" && !this.isMobileMenuOpen) return;
-    this.header.dataset.sectionTheme = this.activeMenu.colorTheme;
-    this.mobileHeader.dataset.sectionTheme = this.activeMenu.colorTheme;
+    this.header.dataset.sectionTheme = colorTheme;
+    this.mobileHeader.dataset.sectionTheme = colorTheme;
   }
   revertColorTheme() {
-    this.menu.dataset.sectionTheme = this.defaultHeaderColorTheme;
+    this.menu.dataset.sectionTheme = this.getHeaderBaseTheme();
     if (this.settings.layout === "inset" && !this.isMobileMenuOpen) return;
     if (this.isMobileMenuOpen) {
       window.setTimeout(() => {
-        this.header.dataset.sectionTheme = this.mobileMenuOverlayTheme;
-        this.mobileHeader.dataset.sectionTheme = this.mobileMenuOverlayTheme;
+        const overlayTheme = this.getOverlayBaseTheme();
+        this.header.dataset.sectionTheme = overlayTheme;
+        this.mobileHeader.dataset.sectionTheme = overlayTheme;
       }, 100);
     } else {
       window.setTimeout(() => {
-        this.header.dataset.sectionTheme = this.defaultHeaderColorTheme;
+        this.header.dataset.sectionTheme = this.getHeaderBaseTheme();
       }, 10);
     }
   }
