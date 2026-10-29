@@ -1410,7 +1410,11 @@ class wmMegaMenu {
     const handleResize = () => {
       this.closeMenu();
       // Squarespace leaves the mobile menu "open" when the window grows past the
-      // mobile breakpoint, so re-sync the flag or the menus stay in the mobile folders
+      // mobile breakpoint, which keeps the page scroll-locked and the header in the
+      // overlay theme, so close it through the burger like a visitor would
+      if (!this.isMobileLayout()) {
+        this.header.querySelector(".header-burger-btn.burger--active")?.click();
+      }
       this.isMobileMenuOpen = this.isMobileLayout() && document.body.classList.contains("header--menu-open");
       this.placeMegaMenusByScreenSize();
       this.setSizing();
