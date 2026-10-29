@@ -1409,14 +1409,25 @@ class wmMegaMenu {
   addResizeEventListener() {
     const handleResize = () => {
       this.closeMenu();
+      // Squarespace leaves the mobile menu "open" when the window grows past the
+      // mobile breakpoint, so re-sync the flag or the menus stay in the mobile folders
+      this.isMobileMenuOpen = this.isMobileLayout() && document.body.classList.contains("header--menu-open");
       this.placeMegaMenusByScreenSize();
       this.setSizing();
     };
     window.addEventListener("resize", handleResize);
   }
+  isMobileLayout() {
+    // The burger is only rendered at mobile widths (or when the desktop nav collapses)
+    return Array.from(this.header.querySelectorAll(".header-burger-btn")).some(
+      burger => burger.offsetWidth > 0 || burger.offsetHeight > 0
+    );
+  }
   placeMegaMenusByScreenSize() {
-    // Only move items to mobile folders if showOnMobile is enabled
-    if (this.settings.showOnMobile && (this.isMobileMenuOpen || document.body.classList.contains("header--menu-open"))) {
+    // Only move items to mobile folders if showOnMobile is enabled and the mobile menu is actually showing
+    const isMobileMenuShowing =
+      this.isMobileMenuOpen || document.body.classList.contains("header--menu-open");
+    if (this.settings.showOnMobile && isMobileMenuShowing && this.isMobileLayout()) {
       this.menus.forEach(menu => {
         if (!menu.keepDefaultMobileMenu) {
           menu.mobileFolder.append(menu.item);
