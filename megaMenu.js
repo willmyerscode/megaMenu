@@ -13,6 +13,9 @@ class wmMegaMenu {
       closeMenuDelay: 150,
       activeAnimation: "fade",
       activeAnimationDelay: 300,
+      menuTransition: true, // false = old behaviour (strip jumps, new menu fades in from blank)
+      menuTransitionDuration: 200, // ms
+      menuTransitionEasing: "ease-in-out",
       closeOnScroll: true,
       allowTriggerClickthrough: true,
       addActiveTriggerClass: false,
@@ -331,6 +334,11 @@ class wmMegaMenu {
     megaMenuDiv.className = "wm-mega-menu";
     megaMenuDiv.dataset.openAnimation = this.settings.openAnimation;
     megaMenuDiv.dataset.layout = this.settings.layout;
+    if (this.settings.menuTransition) {
+      megaMenuDiv.dataset.menuTransition = "";
+      megaMenuDiv.style.setProperty("--mega-menu-transition-duration", `${this.settings.menuTransitionDuration}ms`);
+      megaMenuDiv.style.setProperty("--mega-menu-transition-easing", this.settings.menuTransitionEasing);
+    }
     this.menu = megaMenuDiv;
     this.matchZIndex();
 
@@ -1240,6 +1248,9 @@ class wmMegaMenu {
       this.menuWrapper.style.width = "100%";
     }
 
+    // menuTransition stacks every panel in one grid cell (see CSS), so there's no strip to slide
+    if (this.settings.menuTransition) return;
+
     // Use transform to move the content instead of scrollLeft
     requestAnimationFrame(() => {
       this.absoluteMenu.style.transform = `translateX(-${left}px)`;
@@ -1316,7 +1327,7 @@ class wmMegaMenu {
       menu.item.style.width = `${width}px`;
       absoluteWidth += width;
     });
-    this.absoluteMenu.style.width = `${absoluteWidth}px`;
+    this.absoluteMenu.style.width = this.settings.menuTransition ? "" : `${absoluteWidth}px`;
   }
   handleInsetMenuPositioning(shouldJump = false) {
     this.setSizing();

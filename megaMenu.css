@@ -137,6 +137,22 @@
   transition: opacity 0.3s ease, max-height 0.3s ease, height 0.3s ease;
 }
 
+/*Menu Transition (menuTransition setting, on by default)*/
+/* Every panel shares one grid cell so moving between menus fades one into the
+   next, instead of jumping the strip and fading the new panel in from blank. */
+.wm-mega-menu[data-menu-transition] .mega-menu-absolute {
+  display: grid;
+  justify-items: start;
+}
+.wm-mega-menu[data-menu-transition] .mega-menu-item {
+  grid-area: 1 / 1;
+  pointer-events: none;
+  transition: opacity var(--mega-menu-transition-duration, 200ms) var(--mega-menu-transition-easing, ease-in-out), max-height 0.3s ease, height 0.3s ease;
+}
+.wm-mega-menu[data-menu-transition] .mega-menu-item.active {
+  pointer-events: auto;
+}
+
 .header-menu .mega-menu-item .content-wrapper {
   opacity: 1;
   visibility: visible;
