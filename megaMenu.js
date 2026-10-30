@@ -619,6 +619,8 @@ class wmMegaMenu {
   }
   addCloseTriggers() {
     this.menuWrapper.addEventListener("mouseleave", e => {
+      // A click-opened menu stays open until an outside click, Escape, or the trigger closes it
+      if (this.settings.openOnClick) return;
       if (e.relatedTarget && e.relatedTarget === this.menu) {
         this.closeMenu();
         return;
