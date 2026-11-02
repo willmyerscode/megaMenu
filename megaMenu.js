@@ -24,6 +24,7 @@ class wmMegaMenu {
       setTriggerNoFollow: false,
       triggerIconDisplay: true,
       backButtonText: "Back",
+      mobileMenuBackground: "overlay", // "overlay" = theme's menu overlay color, "section" = mega menu section's background
 
       // Accessibility
       enhanceTriggerA11y: true, // adds role/aria-haspopup/aria-controls + keeps aria-expanded in sync
@@ -114,6 +115,7 @@ class wmMegaMenu {
     this.buildDesktopHTML();
     if (this.settings.showOnMobile) {
       this.buildMobileHTML();
+      this.mobileHeader.dataset.megaMenuMobileBackground = this.settings.mobileMenuBackground;
     } else {
       this.cleanMobileURLs();
     }
@@ -727,6 +729,14 @@ class wmMegaMenu {
     this.menus.forEach(menu => {
       const backButton = menu.mobileBackButton;
       const handleClick = () => {
+        // With the section background, restore the overlay theme right away;
+        // revertColorTheme's delay would flash the mega menu theme's overlay color
+        // once the folder closes
+        if (this.settings.mobileMenuBackground === "section") {
+          const overlayTheme = this.getOverlayBaseTheme();
+          this.header.dataset.sectionTheme = overlayTheme;
+          this.mobileHeader.dataset.sectionTheme = overlayTheme;
+        }
         this.revertColorTheme();
       };
       backButton.addEventListener("click", handleClick);

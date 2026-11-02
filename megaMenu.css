@@ -276,6 +276,10 @@ body:not(.header--menu-open) #header:has(.wm-mega-menu[data-open-animation="swin
 .mobile-mega-menu-folder .header-menu-nav-folder-content {
   flex-grow: 0;
 }
+/*mobileMenuBackground: "section" - match the mega menu's section background, not the theme's menu overlay color*/
+.header-menu[data-mega-menu-mobile-background="section"]:has(.mobile-mega-menu-folder.header-menu-nav-folder--active) .header-menu-bg {
+  background-color: var(--siteBackgroundColor);
+}
 /*Hide duplicate dropdown icon*/
 [data-folder-id] .header-dropdown-icon + .header-dropdown-icon,
 [data-folder] .header-dropdown-icon + .header-dropdown-icon {
