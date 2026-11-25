@@ -152,6 +152,12 @@
 .wm-mega-menu[data-menu-transition] .mega-menu-item.active {
   pointer-events: auto;
 }
+/* Inactive panels stay stacked (opacity 0) under the active one. Any descendant
+   with its own pointer-events: auto (e.g. Squarespace image-card text) would
+   otherwise catch clicks meant for the visible panel. */
+.wm-mega-menu[data-menu-transition] .mega-menu-item:not(.active) * {
+  pointer-events: none !important;
+}
 
 .header-menu .mega-menu-item .content-wrapper {
   opacity: 1;
